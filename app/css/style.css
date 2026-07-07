@@ -1,0 +1,292 @@
+/* המגדלור: עיצוב משותף לכל המסכים.
+   לפי מפרט העיצוב: גופן אחד (Heebo), רקע שמנת, צבע פעולה כתום יחיד,
+   טקסט 20px ומעלה, ניגודיות AAA, בלי ניווט. */
+
+:root {
+  --bg: #faf6ef;        /* שמנת חמה */
+  --ink: #1a1a1a;       /* כמעט שחור */
+  --muted: #4a4a4a;     /* טקסט משני, עדיין AAA על שמנת */
+  --action: #c4470a;    /* כתום עמוק, הפעולה הראשית בלבד */
+  --rec: #c62828;       /* אדום: רק נקודת הקלטה וכפתור סיום */
+  --soft: #fff3cd;      /* צהוב חם לשגיאות מרגיעות */
+  --soft-ink: #5c4a00;
+  --ok-bg: #e8f2e9;
+  --ok-ink: #1e4620;
+  --card: #ffffff;
+  --line: #e3dccb;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { height: 100%; }
+
+body {
+  font-family: "Heebo", -apple-system, "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1.55;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 16px 16px 40px;
+  min-height: 100%;
+}
+
+h1 { font-size: 24px; font-weight: 700; }
+h2 { font-size: 20px; font-weight: 700; margin-top: 8px; }
+p  { font-size: 20px; }
+.small { font-size: 18px; color: var(--muted); }
+
+/* ---- מסכים (SPA) ---- */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ---- כפתורים ---- */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 16px;
+}
+.btn-primary {
+  display: block;
+  width: 100%;
+  min-height: 64px;
+  background: var(--action);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  margin-top: 16px;
+}
+.btn-primary:disabled { background: #b9ada0; cursor: default; }
+.btn-hero {
+  display: block;
+  width: 100%;
+  min-height: 96px;
+  background: var(--action);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  border-radius: 20px;
+  margin-top: 16px;
+  box-shadow: 0 3px 0 rgba(0,0,0,.12);
+}
+.btn-secondary {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  background: #fff;
+  border: 3px solid var(--action);
+  color: var(--action);
+  font-size: 20px;
+  font-weight: 600;
+  margin-top: 12px;
+}
+.btn-quiet {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 19px;
+  text-decoration: underline;
+  margin-top: 8px;
+}
+.btn-stop {
+  display: block;
+  width: 100%;
+  min-height: 72px;
+  background: var(--rec);
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+  margin-top: 12px;
+}
+
+/* ---- הודעות מצב ---- */
+.notice {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--soft);
+  color: var(--soft-ink);
+  font-size: 19px;
+}
+.notice.ok { background: var(--ok-bg); color: var(--ok-ink); }
+.notice.plain { background: #f1ece0; color: var(--ink); }
+
+.offline-bar {
+  display: none;
+  margin: -16px -16px 12px;
+  padding: 12px 16px;
+  background: var(--soft);
+  color: var(--soft-ink);
+  font-size: 18px;
+  text-align: center;
+}
+body.offline .offline-bar { display: block; }
+
+/* ---- כרטיסים ---- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 12px;
+}
+.card .title { font-size: 22px; font-weight: 700; }
+.card .meta { font-size: 18px; color: var(--muted); margin-top: 2px; }
+.card .status { font-size: 18px; margin-top: 8px; }
+.card .status.viewed { color: var(--ok-ink); }
+
+.skeleton {
+  background: #efe9dc;
+  border-radius: 16px;
+  height: 96px;
+  margin-top: 12px;
+  animation: pulse 1.3s infinite ease-in-out;
+}
+@keyframes pulse { 50% { opacity: .55; } }
+
+/* ---- פס התקדמות ---- */
+.progress-track {
+  height: 14px;
+  border-radius: 7px;
+  background: #efe9dc;
+  overflow: hidden;
+  margin-top: 10px;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 7px;
+  background: var(--action);
+  transition: width .6s ease;
+}
+
+/* ---- טפסים ---- */
+label { display: block; font-size: 19px; margin-top: 14px; }
+input[type="text"], input[type="tel"], input[type="email"], select, textarea {
+  font-family: inherit;
+  font-size: 20px;
+  width: 100%;
+  min-height: 56px;
+  border: 2px solid #a89f8d;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 14px;
+  margin-top: 6px;
+  color: var(--ink);
+}
+textarea { min-height: 140px; direction: ltr; text-align: left; font-size: 16px; }
+
+/* ---- וידאו והקלטה ---- */
+.video-wrap {
+  position: relative;
+  margin-top: 16px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+}
+.video-wrap video { width: 100%; display: block; }
+.hud {
+  position: absolute;
+  top: 8px; right: 8px; left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0,0,0,.55);
+  color: #fff;
+  border-radius: 12px;
+  padding: 8px 14px;
+}
+.rec-dot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--rec);
+  animation: blink 1.2s infinite;
+  flex: none;
+}
+@keyframes blink { 50% { opacity: .15; } }
+.timer {
+  font-size: 48px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  line-height: 1.1;
+}
+.hud-note { font-size: 16px; }
+.mic-note { font-size: 16px; margin-inline-start: auto; }
+.mic-note.ok { color: #9fe89f; }
+.mic-note.bad { color: #ffb3ab; }
+
+/* ---- בחירת מנטורים ---- */
+.mentor-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 72px;
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 10px 16px;
+  margin-top: 10px;
+  font-size: 21px;
+  text-align: right;
+  color: var(--ink);
+}
+.mentor-card .check {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 2px solid #a89f8d;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: #fff;
+}
+.mentor-card.selected { border-color: var(--action); }
+.mentor-card.selected .check { background: var(--action); border-color: var(--action); }
+
+/* ---- שלבי הכנה ---- */
+.prep-illustration {
+  display: block;
+  margin: 18px auto 0;
+  max-width: 100%;
+}
+
+/* ---- טבלת אדמין ---- */
+.table-wrap { overflow-x: auto; margin-top: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: 18px; }
+th, td { border-bottom: 1px solid var(--line); padding: 10px 8px; text-align: right; }
+th { font-weight: 700; }
+tr.flagged td { background: var(--soft); }
+
+.badge-new {
+  display: inline-block;
+  background: var(--action);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 10px;
+  margin-inline-start: 8px;
+}
+
+.dev-banner {
+  display: none;
+  margin: -16px -16px 12px;
+  padding: 8px 16px;
+  background: #2b2b2b;
+  color: #ffd54f;
+  font-size: 16px;
+  text-align: center;
+}
+body.dev .dev-banner { display: block; }
+
+a { color: var(--action); }
+.center { text-align: center; }
+.mt { margin-top: 16px; }
+.hidden { display: none !important; }

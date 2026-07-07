@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>המגדלור: כל החותמים שלי</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="brand.css">
+</head>
+<body>
+
+<div class="dev-banner">מצב תצוגה: נתוני הדגמה בלבד, שום דבר לא נשלח לשרת</div>
+<div class="offline-bar">אין אינטרנט כרגע. הרשימה תתעדכן כשיחזור החיבור.</div>
+
+<section id="screen-boot" class="screen active">
+  <h1>המגדלור</h1>
+  <p class="small mt">רק רגע...</p>
+</section>
+
+<section id="screen-login" class="screen">
+  <h1>כל החותמים שלי</h1>
+  <p class="mt">כדי לשמור על הפרטיות של המורים, הכניסה היא עם חשבון גוגל.</p>
+  <div class="notice plain mt">
+    עכשיו יופיע מסך של גוגל. בוחרים את החשבון שלך ולוחצים אישור.
+    זה בטוח, ואנחנו לא רואים את הסיסמה שלך.
+  </div>
+  <button id="loginBtn" class="btn-primary">כניסה עם Google</button>
+</section>
+
+<section id="screen-list" class="screen">
+  <h1 id="mentorGreeting">כל החותמים שלי</h1>
+  <p class="small">שיעורים ששותפו איתך, מהחדש לישן. "חדש" מסמן שיעור שעוד לא צפית בו.</p>
+  <div id="listLoading">
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+  </div>
+  <div id="listError" class="notice hidden">
+    לא הצלחנו להביא את הרשימה, זו רק בעיית תקשורת רגעית.
+    <button id="listRetry" class="btn-secondary">לנסות שוב</button>
+  </div>
+  <div id="listEmpty" class="hidden">
+    <p class="mt">עוד לא שותפו איתך שיעורים. כשחותם ישתף איתך שיעור, הוא יופיע כאן.</p>
+  </div>
+  <div id="groups"></div>
+</section>
+
+<script type="module" src="js/mentor.js"></script>
+</body>
+</html>

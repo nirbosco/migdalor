@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>המגדלור</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="brand.css">
+</head>
+<body>
+
+<div class="dev-banner">מצב תצוגה: נתוני הדגמה בלבד, שום דבר לא נשלח לשרת</div>
+<div class="offline-bar">אין אינטרנט כרגע. אפשר לצלם כרגיל, והסרטון יעלה כשיחזור החיבור.</div>
+
+<!-- ===== טעינה ראשונית ===== -->
+<section id="screen-boot" class="screen active">
+  <h1>המגדלור</h1>
+  <p class="small mt">רק רגע...</p>
+</section>
+
+<!-- ===== דפדפן פנימי של וואטסאפ ===== -->
+<section id="screen-inapp" class="screen">
+  <h1>המגדלור</h1>
+  <div class="notice mt">
+    כדי שהמצלמה תעבוד, פותחים את הקישור בדפדפן.
+    לוחצים על שלוש הנקודות למעלה ואז על "פתיחה בדפדפן".
+  </div>
+  <svg class="prep-illustration" width="220" height="150" viewBox="0 0 220 150" role="img" aria-label="איור: תפריט שלוש הנקודות בפינת המסך">
+    <rect x="30" y="6" width="160" height="138" rx="14" fill="#fff" stroke="var(--deyo)" stroke-width="3"/>
+    <circle cx="172" cy="26" r="3.5" fill="#1a1a1a"/>
+    <circle cx="172" cy="36" r="3.5" fill="#1a1a1a"/>
+    <circle cx="172" cy="46" r="3.5" fill="#1a1a1a"/>
+    <circle cx="172" cy="36" r="17" fill="none" stroke="var(--sagol)" stroke-width="3"/>
+    <rect x="48" y="66" width="124" height="12" rx="6" fill="var(--sagol-krem)"/>
+    <rect x="48" y="88" width="124" height="12" rx="6" fill="var(--sagol-krem)"/>
+    <rect x="48" y="110" width="80" height="12" rx="6" fill="var(--sagol-krem)"/>
+  </svg>
+</section>
+
+<!-- ===== כניסה ===== -->
+<section id="screen-login" class="screen">
+  <h1>המגדלור</h1>
+  <p class="mt">כאן מצלמים את שיעורי התרגול ומשתפים אותם עם המנטור שלך. פשוט, בטוח, ופרטי.</p>
+  <div class="notice plain mt">
+    עכשיו יופיע מסך של גוגל. בוחרים את החשבון שלך ולוחצים אישור.
+    זה בטוח, ואנחנו לא רואים את הסיסמה שלך.
+  </div>
+  <button id="loginBtn" class="btn-primary">כניסה עם Google</button>
+  <div id="loginError" class="notice hidden"></div>
+</section>
+
+<!-- ===== לא נמצא בשיבוץ ===== -->
+<section id="screen-join" class="screen">
+  <h1>כמעט סיימנו</h1>
+  <p class="mt">עוד לא חיברנו אותך לרשימה שלנו. תשאירו לנו את השם והטלפון, והצוות יחבר אותך עוד היום.</p>
+  <form id="joinForm">
+    <label for="joinName">השם המלא</label>
+    <input type="text" id="joinName" autocomplete="name" required>
+    <label for="joinPhone">טלפון</label>
+    <input type="tel" id="joinPhone" autocomplete="tel" required>
+    <button type="submit" class="btn-primary">לשלוח לצוות</button>
+  </form>
+  <div id="joinDone" class="notice ok hidden">
+    הפרטים נשלחו לצוות. ברגע שיחברו אותך, הכניסה הבאה תעבוד כרגיל.
+    אפשר לסגור בראש שקט.
+  </div>
+  <div id="joinError" class="notice hidden"></div>
+</section>
+
+<!-- ===== ברוכים הבאים (פעם ראשונה) ===== -->
+<section id="screen-welcome" class="screen">
+  <h1 id="welcomeTitle">ברוך הבא</h1>
+  <p class="mt">כאן מצלמים את שיעורי התרגול שלך.</p>
+  <p class="mt">
+    הסרטונים שלך פרטיים לגמרי: רק אתה רואה אותם, עד שאתה בוחר לשתף
+    את המנטור שלך. אף אחד אחר.
+  </p>
+  <button id="welcomeBtn" class="btn-primary">הבנתי, אפשר להמשיך</button>
+</section>
+
+<!-- ===== הבית ===== -->
+<section id="screen-home" class="screen">
+  <p id="homeGreeting" style="font-size:24px">שלום</p>
+  <button id="newLessonBtn" class="btn-hero">לצלם שיעור חדש</button>
+  <button id="fromGalleryBtn" class="btn-secondary">צילמתי במצלמה של הטלפון</button>
+  <input type="file" id="galleryFile" accept="video/*" class="hidden">
+
+  <div id="pendingUploadCard" class="card hidden">
+    <div class="title" id="pendingTitle"></div>
+    <div class="status" id="pendingStatus"></div>
+    <div class="progress-track hidden" id="pendingTrack"><div class="progress-fill" id="pendingFill"></div></div>
+    <button id="resumeUploadBtn" class="btn-secondary">להמשיך העלאה</button>
+  </div>
+
+  <h2 class="mt">השיעורים שלך</h2>
+  <div id="lessonsLoading">
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+  </div>
+  <div id="lessonsError" class="notice hidden">
+    לא הצלחנו להביא את רשימת השיעורים. הם שמורים ובטוחים, זו רק בעיית
+    תקשורת רגעית.
+    <button id="lessonsRetry" class="btn-secondary">לנסות שוב</button>
+  </div>
+  <div id="lessonsEmpty" class="hidden">
+    <p class="mt">
+      עדיין אין כאן שיעורים, וזה בסדר גמור. כשמצלמים את השיעור הראשון,
+      הוא יופיע כאן וישמר לתמיד. הכפתור הצהוב למעלה מתחיל הכול.
+    </p>
+  </div>
+  <div id="lessonsList"></div>
+
+  <div id="roleLinks" class="mt hidden center">
+    <a id="mentorLink" href="mentor.html" class="hidden">המסך של המנטור</a>
+    <span id="roleLinksSep" class="hidden"> | </span>
+    <a id="adminLink" href="admin.html" class="hidden">פאנל ניהול</a>
+  </div>
+</section>
+
+<!-- ===== הכנה לצילום: שלושה צעדים ===== -->
+<section id="screen-prep1" class="screen">
+  <h1>מתכוננים לצילום</h1>
+  <p class="mt">מעמידים את הטלפון כך שרואים אותך ואת הלוח.</p>
+  <svg class="prep-illustration" width="240" height="170" viewBox="0 0 240 170" role="img" aria-label="איור: טלפון על חצובה מול לוח כיתה">
+    <rect x="86" y="14" width="120" height="80" rx="6" fill="#fff" stroke="var(--deyo)" stroke-width="3"/>
+    <line x1="98" y1="34" x2="176" y2="34" stroke="var(--sagol-bahir)" stroke-width="4" stroke-linecap="round"/>
+    <line x1="98" y1="50" x2="192" y2="50" stroke="var(--sagol-bahir)" stroke-width="4" stroke-linecap="round"/>
+    <line x1="98" y1="66" x2="160" y2="66" stroke="var(--sagol-bahir)" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="60" cy="66" r="12" fill="var(--sagol)"/>
+    <line x1="60" y1="78" x2="60" y2="106" stroke="var(--sagol)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="60" y1="86" x2="46" y2="98" stroke="var(--sagol)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="60" y1="86" x2="74" y2="98" stroke="var(--sagol)" stroke-width="5" stroke-linecap="round"/>
+    <rect x="20" y="106" width="16" height="30" rx="5" fill="#1a1a1a"/>
+    <rect x="23" y="110" width="10" height="16" rx="2" fill="#6da6d9"/>
+    <line x1="28" y1="136" x2="16" y2="162" stroke="#1a1a1a" stroke-width="4" stroke-linecap="round"/>
+    <line x1="28" y1="136" x2="40" y2="162" stroke="#1a1a1a" stroke-width="4" stroke-linecap="round"/>
+    <line x1="28" y1="136" x2="28" y2="164" stroke="#1a1a1a" stroke-width="4" stroke-linecap="round"/>
+  </svg>
+  <button id="prep1Next" class="btn-primary">הבא</button>
+  <button class="btn-quiet back-home">חזרה לשיעורים שלי</button>
+</section>
+
+<section id="screen-prep2" class="screen">
+  <h1>שקט לשעה הקרובה</h1>
+  <p class="mt">
+    כדאי לעבור למצב טיסה עם WiFi דלוק, כדי ששיחות לא יפריעו.
+    ואם תיכנס שיחה בכל זאת, ההקלטה לא תלך לאיבוד.
+  </p>
+  <svg class="prep-illustration" width="220" height="120" viewBox="0 0 220 120" role="img" aria-label="איור: מתג מצב טיסה דלוק">
+    <path d="M60 26 L66 48 L92 62 L92 70 L66 62 L64 82 L72 90 L72 96 L60 92 L48 96 L48 90 L56 82 L54 62 L28 70 L28 62 L54 48 Z" fill="#1a1a1a"/>
+    <rect x="120" y="46" width="72" height="34" rx="17" fill="#2e7d32"/>
+    <circle cx="176" cy="63" r="13" fill="#fff"/>
+  </svg>
+  <button id="prep2Next" class="btn-primary">הבא</button>
+  <button class="btn-quiet back-home">חזרה לשיעורים שלי</button>
+</section>
+
+<section id="screen-prep3" class="screen">
+  <h1>בדיקה אחרונה ומתחילים</h1>
+  <div id="prep3Ask">
+    <p class="mt">עוד רגע הטלפון ישאל אם מותר לנו להשתמש במצלמה. לוחצים "אפשר".</p>
+    <button id="openCameraBtn" class="btn-primary">לפתוח את המצלמה</button>
+  </div>
+  <div id="prep3Denied" class="hidden">
+    <div class="notice">
+      הטלפון לא נתן לנו לפתוח את המצלמה. זה קורה להרבה אנשים והתיקון קצר:
+      זה תיקון של חצי דקה.
+    </div>
+    <p class="mt" id="deniedHelp"></p>
+    <button id="retryCameraBtn" class="btn-primary">ניסיתי, לבדוק שוב</button>
+  </div>
+  <div id="prep3Ready" class="hidden">
+    <div class="video-wrap">
+      <video id="prepVideo" autoplay muted playsinline></video>
+      <div class="hud">
+        <div class="hud-note">תצוגה מקדימה, עוד לא מקליט</div>
+        <div class="mic-note" id="prepMic">בודקים קול...</div>
+      </div>
+    </div>
+    <label for="camSel">מצלמה</label>
+    <select id="camSel"></select>
+    <label for="micSel">מיקרופון</label>
+    <select id="micSel"></select>
+    <p class="small mt" id="spaceLine">בודקים כמה מקום פנוי יש בטלפון...</p>
+    <button id="startRecordBtn" class="btn-primary">להתחיל לצלם</button>
+  </div>
+  <button class="btn-quiet back-home" id="prep3Back">חזרה לשיעורים שלי</button>
+</section>
+
+<!-- ===== הקלטה ===== -->
+<section id="screen-record" class="screen">
+  <div class="video-wrap">
+    <video id="recVideo" autoplay muted playsinline></video>
+    <div class="hud">
+      <div class="rec-dot" id="recDot"></div>
+      <div class="timer" id="recTimer">00:00</div>
+      <div class="mic-note" id="recMic"></div>
+    </div>
+  </div>
+  <p class="small center mt"><span>מקליט ושומר</span><span id="recSpace"></span></p>
+  <div id="recSpaceWarn" class="notice hidden"></div>
+  <button id="stopBtn" class="btn-stop">סיום</button>
+  <div id="stopConfirm" class="card hidden">
+    <p style="font-size:22px; font-weight:700">לסיים את הצילום?</p>
+    <button id="stopYes" class="btn-primary">כן, סיימתי</button>
+    <button id="stopNo" class="btn-secondary">לא, להמשיך לצלם</button>
+  </div>
+</section>
+
+<!-- ===== הפרעה באמצע הקלטה ===== -->
+<section id="screen-interrupted" class="screen">
+  <div class="notice ok" id="interruptedMsg"></div>
+  <button id="resumeRecBtn" class="btn-primary">להמשיך לצלם</button>
+  <button id="finishHereBtn" class="btn-secondary">לסיים כאן</button>
+</section>
+
+<!-- ===== אחרי העצירה: העלאה ושיתוף ===== -->
+<section id="screen-after" class="screen">
+  <p id="afterHeadline" style="font-size:24px; font-weight:700">כל הכבוד, השיעור צולם ושמור.</p>
+
+  <div class="card" id="uploadCard">
+    <div id="uploadLine" class="status">מתחילים להעלות...</div>
+    <div class="progress-track"><div class="progress-fill" id="uploadFill"></div></div>
+    <p class="small mt" id="uploadTrust">
+      הסרטון עולה לענן המאובטח של חותם נעמי. הוא שמור שם לתמיד,
+      ורק אתה מחליט מי יראה אותו.
+    </p>
+  </div>
+  <div id="uploadNotice" class="notice hidden"></div>
+
+  <label for="lessonTitle">שם השיעור</label>
+  <input type="text" id="lessonTitle">
+
+  <h2 class="mt">לשלוח למנטור?</h2>
+  <div id="mentorList"></div>
+  <div id="noMentors" class="notice plain hidden">
+    עוד לא שובצו לך מנטורים. הצוות משבץ, ואפשר בינתיים להעתיק קישור
+    או לשלוח אחר כך.
+  </div>
+  <p class="small mt">
+    רק מי שתבחר יקבל את הקישור. אף אחד אחר לא יכול לראות את הסרטון.
+  </p>
+  <button id="sendBtn" class="btn-primary" disabled>לשלוח</button>
+  <button id="copyLinkBtn" class="btn-secondary">להעתיק קישור בשביל חותמית</button>
+  <button id="laterBtn" class="btn-quiet">אשלח אחר כך</button>
+  <div id="shareDone" class="notice ok hidden"></div>
+  <a id="waLink" class="hidden" target="_blank" rel="noopener">
+    <button class="btn-primary" type="button">לפתוח את וואטסאפ עם ההודעה</button>
+  </a>
+  <div id="copyDone" class="notice ok hidden">
+    הקישור הועתק. עכשיו נכנסים לחותמית ומדביקים אותו במסמך שלך
+    (לוחצים לחיצה ארוכה ואז "הדבק").
+  </div>
+  <button id="afterHomeBtn" class="btn-quiet hidden">חזרה לשיעורים שלי</button>
+</section>
+
+<!-- ===== מסך "אחרי" בלי סרטון (רענון) ===== -->
+<section id="screen-after-empty" class="screen">
+  <p class="mt">הסרטון כבר שמור ברשימה שלך.</p>
+  <button class="btn-primary back-home">חזרה לשיעורים שלי</button>
+</section>
+
+<script src="js/webm-fix.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

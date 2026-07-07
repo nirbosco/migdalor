@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>המגדלור: ספר העיצוב החי</title>
+<link rel="stylesheet" href="brand.css">
+<style>
+  /* תוספות קטנות לעמוד הדוגמה בלבד */
+  .demo-section { margin-top: 34px; }
+  .demo-note { font-size: 17px; color: var(--afor); margin-top: 4px; }
+  body.watch .demo-note { color: #C4BDE0; }
+  body.watch .swatch { color: var(--deyo); }
+  .fake-video {
+    height: 300px;
+    background: #12101E;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    color: #6B6584;
+    font-size: 18px;
+    padding-bottom: 14px;
+  }
+  .swatches { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .swatch {
+    width: 104px;
+    border: var(--kav);
+    border-radius: var(--radius-katan);
+    overflow: hidden;
+    background: var(--lavan);
+    font-size: 15px;
+    text-align: center;
+  }
+  .swatch .color { height: 56px; }
+  .swatch .name { padding: 4px 6px; line-height: 1.3; }
+</style>
+</head>
+<body>
+
+<div class="offline-bar">אין אינטרנט כרגע. אפשר לצלם כרגיל, והסרטון יעלה כשיחזור החיבור.</div>
+
+<header class="app-header">
+  <div class="brand">המגדלור</div>
+  <div class="greeting">שלום, משה</div>
+</header>
+<div class="stripe-band" aria-hidden="true"></div>
+
+<main>
+
+  <section class="demo-section">
+    <h1 class="screen-title">ספר העיצוב החי של המגדלור</h1>
+    <p class="demo-note">כל מה שרואים כאן מגיע מקובץ אחד: brand.css. אפשר ללחוץ, לבחור ולבדוק שהכול מרגיש נכון.</p>
+  </section>
+
+  <section class="demo-section">
+    <span class="chip">הפלטה</span>
+    <div class="swatches">
+      <div class="swatch"><div class="color" style="background:#4A3A8C"></div><div class="name">סגול חותם<br>4A3A8C</div></div>
+      <div class="swatch"><div class="color" style="background:#FFCC00"></div><div class="name">צהוב הפנס<br>FFCC00</div></div>
+      <div class="swatch"><div class="color" style="background:#E22A5B"></div><div class="name">ורוד המגדלור<br>E22A5B</div></div>
+      <div class="swatch"><div class="color" style="background:#C81E45"></div><div class="name">אדום הקלטה<br>C81E45</div></div>
+      <div class="swatch"><div class="color" style="background:#58C7BE"></div><div class="name">טורקיז<br>58C7BE</div></div>
+      <div class="swatch"><div class="color" style="background:#241E3D"></div><div class="name">דיו<br>241E3D</div></div>
+    </div>
+  </section>
+
+  <section class="demo-section">
+    <span class="chip">הכפתור הראשי של הבית</span>
+    <p class="demo-note">עם קרן זרקור צהובה מאחוריו. גדול פי שלושה מכל דבר אחר במסך.</p>
+    <div class="beam">
+      <button class="btn-hero">📹 לצלם שיעור חדש</button>
+    </div>
+  </section>
+
+  <section class="demo-section">
+    <span class="chip">שאר הכפתורים</span>
+    <button class="btn-primary">לשלוח למנטור</button>
+    <button class="btn-primary" disabled>לשלוח (עוד לא נבחר מנטור)</button>
+    <button class="btn-secondary">להעתיק קישור בשביל חותמית</button>
+    <button class="btn-quiet">אשלח אחר כך</button>
+    <button class="btn-stop">סיום</button>
+    <p class="demo-note">האדום שמור לכפתור הסיום ולנקודת ההקלטה בלבד. שגיאות לעולם לא אדומות.</p>
+  </section>
+
+  <section class="demo-section">
+    <span class="chip">הודעות מצב</span>
+    <div class="notice">לא הצלחנו להביא את רשימת השיעורים. הם שמורים ובטוחים, זו רק בעיית תקשורת רגעית.</div>
+    <div class="notice ok"><strong>נשלח לאהוד.</strong> הוא יקבל הודעה למייל, וכשיצפה בשיעור תראה את זה כאן.</div>
+    <div class="notice plain">עוד רגע הטלפון ישאל אם מותר לנו להשתמש במצלמה. לוחצים "אפשר".</div>
+    <button class="btn-secondary" id="toggle-offline">להציג או להסתיר את פס האופליין למעלה</button>
+  </section>
+
+  <section class="demo-section">
+    <span class="chip">השיעורים שלך</span>
+    <div class="card">
+      <div class="title">שיעור מיום שלישי, 7.7 <span class="badge-new">חדש</span></div>
+      <div class="meta">7 ביולי, 43 דקות</div>
+      <div class="status viewed">נשלח לאהוד, נצפה</div>
+    </div>
+    <div class="card">
+      <div class="title">שיעור חשבון, כיתה ג</div>
+      <div class="meta">30 ביוני, 38 דקות</div>
+      <div class="status">עולה עכשיו: 12 מתוך 43 דקות. לא לסגור את החלון.</div>
+      <div class="progress-track"><div class="progress-fill" id="demo-progress" style="width:28%"></div></div>
+    </div>
+    <div class="card">
+      <div class="title">שיעור ראשון שלי</div>
+      <div class="meta">23 ביוני, 52 דקות</div>
+      <div class="status">עדיין לא שותף</div>
+    </div>
+  </section>
+
+  <section class="demo-section">
+    <span class="chip">מצב ריק ושלד טעינה</span>
+    <div class="empty-state">
+      עדיין אין כאן שיעורים, וזה בסדר גמור. כשמצלמים את השיעור הראשון, הוא יופיע כאן וישמר לתמיד. הכפתור הצהוב למעלה מתחיל הכול.
+    </div>
+    <div class="skeleton" aria-hidden="true"></div>
+  </section>
+
+  <section class="demo-section">
+    <span class="chip">הכנה לצילום: בוררים ומד קול</span>
+    <div class="device-field">
+      <label for="cam">איזו מצלמה לראות?</label>
+      <select id="cam" class="device-select">
+        <option>המצלמה האחורית</option>
+        <option>המצלמה הקדמית</option>
+      </select>
+    </div>
+    <div class="device-field">
+      <label for="mic">מאיפה לשמוע אותך?</label>
+      <select id="mic" class="device-select">
+        <option>המיקרופון של הטלפון</option>
+        <option>אוזניות עם מיקרופון</option>
+      </select>
+    </div>
+    <label>בדיקת קול: מדברים רגיל ורואים את הפס זז</label>
+    <div class="mic-meter"><div class="mic-meter-fill" id="demo-mic" style="width:35%"></div></div>
+  </section>
+
+  <section class="demo-section">
+    <span class="chip">בזמן ההקלטה</span>
+    <p class="demo-note">השעון והנקודה חייבים להיקרא מחמישה מטרים, מהקצה השני של הכיתה.</p>
+    <div class="video-wrap">
+      <div class="fake-video">כאן רואים את תצוגת המצלמה</div>
+      <div class="hud">
+        <div class="rec-dot" aria-hidden="true"></div>
+        <div>
+          <div class="timer">23:41</div>
+          <div class="hud-note">מקליט ושומר</div>
+        </div>
+        <div class="mic-note ok">קול נקלט ✓</div>
+      </div>
+    </div>
+    <button class="btn-stop">סיום</button>
+  </section>
+
+  <section class="demo-section">
+    <span class="chip">לשלוח למנטור?</span>
+    <button class="mentor-card selected" aria-pressed="true">
+      <span class="check">✓</span>
+      <span>אהוד לוי</span>
+    </button>
+    <button class="mentor-card" aria-pressed="false">
+      <span class="check">✓</span>
+      <span>נעמה כהן</span>
+    </button>
+    <p class="small">רק מי שתבחר יקבל את הקישור. אף אחד אחר לא יכול לראות את הסרטון.</p>
+  </section>
+
+  <section class="demo-section">
+    <span class="chip">פאנל האדמין</span>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>חותם</th><th>צילום אחרון</th><th>צפיות מהיעד</th><th>מצב</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>משה אבו קרינאת</td><td>7.7</td><td>3 מתוך 6</td><td><span class="tag tag-ok">בסדר גמור</span></td></tr>
+          <tr><td>פאטמה אלעטאונה</td><td>30.6</td><td>2 מתוך 6</td><td><span class="tag tag-ok">בסדר גמור</span></td></tr>
+          <tr class="flagged"><td>יעקב פרץ</td><td>לפני חודשיים</td><td>0 מתוך 6</td><td><span class="tag tag-stuck">צריך עזרה</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="demo-section">
+    <span class="chip">מסך הצפייה של המנטור</span>
+    <p class="demo-note">לחיצה על הכפתור מחשיכה את כל העמוד, כמו במסך הצפייה האמיתי. לוחצים שוב וחוזרים.</p>
+    <button class="btn-secondary" id="toggle-watch">להדליק את מסך הצפייה הכהה</button>
+    <div class="card">
+      <div class="title">שיעור מיום שלישי, 7.7</div>
+      <div class="meta">משה אבו קרינאת, 43 דקות</div>
+    </div>
+    <div class="video-wrap">
+      <div class="fake-video">כאן מתנגן השיעור</div>
+    </div>
+    <button class="btn-secondary">כל החותמים שלי</button>
+  </section>
+
+  <section class="demo-section">
+    <span class="chip">טופס</span>
+    <label for="lesson-name">איך לקרוא לשיעור?</label>
+    <input type="text" id="lesson-name" value="שיעור מיום שלישי, 7.7">
+    <button class="btn-primary">זה השם, אפשר להמשיך</button>
+  </section>
+
+</main>
+
+<script>
+  // הדגמות קטנות לעמוד הזה בלבד. באפליקציה עצמה הלוגיקה יושבת ב-js/ui.js
+
+  // בחירת מנטור
+  document.querySelectorAll('.mentor-card').forEach(function (card) {
+    card.addEventListener('click', function () {
+      card.classList.toggle('selected');
+      card.setAttribute('aria-pressed', card.classList.contains('selected'));
+    });
+  });
+
+  // פס אופליין
+  document.getElementById('toggle-offline').addEventListener('click', function () {
+    document.body.classList.toggle('offline');
+  });
+
+  // מסך צפייה כהה
+  document.getElementById('toggle-watch').addEventListener('click', function () {
+    document.body.classList.toggle('watch');
+    this.textContent = document.body.classList.contains('watch')
+      ? 'לחזור למסך הבהיר'
+      : 'להדליק את מסך הצפייה הכהה';
+  });
+
+  // הדגמת התקדמות העלאה
+  var progress = 28;
+  setInterval(function () {
+    progress = progress >= 96 ? 28 : progress + 4;
+    document.getElementById('demo-progress').style.width = progress + '%';
+  }, 1500);
+
+  // הדגמת מד קול
+  setInterval(function () {
+    var level = 20 + Math.round(Math.random() * 55);
+    document.getElementById('demo-mic').style.width = level + '%';
+  }, 220);
+</script>
+
+</body>
+</html>

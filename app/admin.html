@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>המגדלור: פאנל ניהול</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="brand.css">
+</head>
+<body>
+
+<div class="dev-banner">מצב תצוגה: נתוני הדגמה בלבד, שום דבר לא נשלח לשרת</div>
+<div class="offline-bar">אין אינטרנט כרגע. הנתונים יתעדכנו כשיחזור החיבור.</div>
+
+<section id="screen-boot" class="screen active">
+  <h1>המגדלור</h1>
+  <p class="small mt">רק רגע...</p>
+</section>
+
+<section id="screen-login" class="screen">
+  <h1>פאנל ניהול</h1>
+  <div class="notice plain mt">
+    עכשיו יופיע מסך של גוגל. בוחרים את החשבון שלך ולוחצים אישור.
+  </div>
+  <button id="loginBtn" class="btn-primary">כניסה עם Google</button>
+</section>
+
+<section id="screen-denied" class="screen">
+  <h1>הדף הזה מיועד לצוות בלבד</h1>
+  <p class="mt">אם לדעתך זו טעות, פונים לצוות מוביל ההכשרה.</p>
+  <a href="index.html">חזרה למגדלור</a>
+</section>
+
+<section id="screen-admin" class="screen">
+  <h1>פאנל ניהול</h1>
+  <p class="small"><a id="backToApp" href="index.html?stay=1">למסך הצילום</a> | <a id="toMentor" href="mentor.html">למסך המנטור</a></p>
+
+  <h2 class="mt">למי צריך לעזור היום</h2>
+  <div id="helpLoading"><div class="skeleton"></div></div>
+  <div id="helpEmpty" class="notice ok hidden">אין כרגע תקלות ואין בקשות ממתינות. הכול רץ.</div>
+  <div id="joinRequests"></div>
+  <div id="failedUploads"></div>
+
+  <h2 class="mt">החותמים</h2>
+  <div id="tableLoading"><div class="skeleton"></div></div>
+  <div id="tableError" class="notice hidden">
+    לא הצלחנו להביא את הנתונים.
+    <button id="tableRetry" class="btn-secondary">לנסות שוב</button>
+  </div>
+  <div class="table-wrap">
+    <table id="traineeTable" class="hidden">
+      <thead>
+        <tr><th>שם</th><th>הקלטה אחרונה</th><th>שיתופים</th><th>נצפו</th></tr>
+      </thead>
+      <tbody id="traineeRows"></tbody>
+    </table>
+  </div>
+
+  <h2 class="mt">טעינת שיבוצים מאקסל</h2>
+  <p class="small">
+    מדביקים כאן שורות מהגיליון. סדר העמודות: מייל חותם, שם חותם, מייל מנטור,
+    שם מנטור, סוג שיבוץ (לא חובה). מפרידים בפסיק או בטאב (הדבקה מאקסל עובדת כמו שהיא).
+  </p>
+  <textarea id="csvBox" placeholder="trainee@example.com&#9;משה לוי&#9;mentor@example.com&#9;אהוד כהן&#9;מורה מלווה"></textarea>
+  <button id="csvPreviewBtn" class="btn-secondary">לבדוק לפני טעינה</button>
+  <div id="csvPreview" class="hidden">
+    <div class="notice plain" id="csvSummary"></div>
+    <div id="csvProblems"></div>
+    <button id="csvCommitBtn" class="btn-primary">לאשר ולטעון</button>
+  </div>
+  <div id="csvDone" class="notice ok hidden"></div>
+  <div id="csvError" class="notice hidden"></div>
+
+  <h2 class="mt">שיבוץ ידני</h2>
+  <form id="manualForm">
+    <label for="mTraineeEmail">מייל החותם</label>
+    <input type="email" id="mTraineeEmail" required>
+    <label for="mTraineeName">שם החותם</label>
+    <input type="text" id="mTraineeName">
+    <label for="mMentorEmail">מייל המנטור</label>
+    <input type="email" id="mMentorEmail" required>
+    <label for="mMentorName">שם המנטור</label>
+    <input type="text" id="mMentorName">
+    <label for="mType">סוג השיבוץ (לא חובה)</label>
+    <input type="text" id="mType" placeholder="מורה מלווה / מוביל בית">
+    <button type="submit" class="btn-primary">לשבץ</button>
+  </form>
+  <div id="manualDone" class="notice ok hidden"></div>
+  <div id="manualError" class="notice hidden"></div>
+</section>
+
+<script type="module" src="js/admin.js"></script>
+</body>
+</html>

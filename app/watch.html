@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>המגדלור: צפייה בשיעור</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="brand.css">
+</head>
+<body class="watch">
+
+<div class="dev-banner">מצב תצוגה: נתוני הדגמה בלבד, שום דבר לא נשלח לשרת</div>
+
+<!-- טעינה -->
+<section id="screen-boot" class="screen active">
+  <h1>המגדלור</h1>
+  <p class="small mt">פותחים את השיעור...</p>
+</section>
+
+<!-- כניסה -->
+<section id="screen-login" class="screen">
+  <h1>צפייה בשיעור</h1>
+  <p class="mt">כדי לשמור על הפרטיות של המורים, הצפייה דורשת כניסה קצרה עם גוגל. פעם אחת, ואחר כך זה זכור.</p>
+  <div class="notice plain mt">
+    עכשיו יופיע מסך של גוגל. בוחרים את החשבון שלך ולוחצים אישור.
+    זה בטוח, ואנחנו לא רואים את הסיסמה שלך.
+  </div>
+  <button id="loginBtn" class="btn-primary">כניסה עם Google</button>
+</section>
+
+<!-- אין גישה -->
+<section id="screen-denied" class="screen">
+  <h1>אין לך גישה לשיעור הזה</h1>
+  <p class="mt">
+    הקישור הזה פרטי: רק מי שהשיעור שותף איתו יכול לפתוח אותו,
+    גם אם הקישור הגיע למישהו אחר בטעות.
+  </p>
+  <p class="mt" id="deniedContact"></p>
+</section>
+
+<!-- הקישור לא תקין -->
+<section id="screen-badlink" class="screen">
+  <h1>הקישור לא מוביל לשיעור</h1>
+  <p class="mt">אולי חסר חלק מהקישור. כדאי לבקש ממי ששלח אותו לשלוח שוב.</p>
+</section>
+
+<!-- הסרטון עוד עולה -->
+<section id="screen-notready" class="screen">
+  <h1 id="notReadyTitle">השיעור בדרך</h1>
+  <p class="mt">
+    הסרטון עדיין עולה לענן. זה קורה לבד, ובדרך כלל לוקח דקות ספורות.
+    אפשר לחזור לקישור הזה קצת מאוחר יותר.
+  </p>
+  <button id="notReadyRetry" class="btn-primary">לבדוק שוב</button>
+</section>
+
+<!-- נגן -->
+<section id="screen-player" class="screen">
+  <h1 id="lessonTitle"></h1>
+  <p class="small" id="lessonMeta"></p>
+  <div class="video-wrap">
+    <video id="player" controls playsinline preload="metadata"></video>
+  </div>
+  <div id="resumeAsk" class="card hidden">
+    <p id="resumeText" style="font-size:20px"></p>
+    <button id="resumeYes" class="btn-primary">להמשיך מאיפה שהפסקתי</button>
+    <button id="resumeNo" class="btn-quiet">להתחיל מההתחלה</button>
+  </div>
+  <div style="display:flex; gap:10px">
+    <button id="back15" class="btn-secondary" style="margin-top:12px">15 שניות אחורה</button>
+    <button id="fwd15" class="btn-secondary" style="margin-top:12px">15 שניות קדימה</button>
+  </div>
+  <button id="speedBtn" class="btn-secondary">מהירות 1.5</button>
+  <div id="playerNote" class="small mt"></div>
+  <button id="myTraineesBtn" class="btn-quiet hidden">כל החותמים שלי</button>
+</section>
+
+<script type="module" src="js/watch.js"></script>
+</body>
+</html>

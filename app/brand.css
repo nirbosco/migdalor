@@ -1,0 +1,634 @@
+/* ============================================================
+   המגדלור: שכבת העיצוב החותמיסטית
+   מעצב/ת המוצר | 7.7.2026
+   מחליף את css/style.css. כל שמות המחלקות הקיימים נשמרו,
+   ונוספו רכיבי מותג חדשים (מסומנים "חדש" בהערה).
+   השפה: סגול עמוק, צהוב פנס, פסי מגדלור אדומים-לבנים,
+   קווי מתאר עבים, צל קשיח, עיגול נדיב, תנועה רגועה.
+   כללי הנגישות מהמפרט מחייבים: טקסט 18px ומעלה (רץ 20px),
+   ניגודיות AAA לטקסט, צבע פעולה יחיד לכל מסך.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&display=swap');
+
+/* ---- משתני המותג ---- */
+:root {
+  /* סגול: צבע הבית של חותם. רקעים כהים, כותרות מותג, כפתור משני */
+  --sagol:        #4A3A8C;  /* טקסט לבן עליו עובר AAA */
+  --sagol-kehe:   #352968;  /* מצב לחוץ, מסך הצפייה */
+  --sagol-bahir:  #6A5AA5;  /* דקורטיבי בלבד, לא לטקסט */
+  --sagol-krem:   #EFECF8;  /* משטחים בהירים, שלדים */
+
+  /* צהוב הפנס: צבע הפעולה היחיד. תמיד עם דיו כהה מעליו */
+  --tsahov:       #FFCC00;
+  --tsahov-lachuts: #EFBD00;
+  --tsahov-rakh:  #FFF3C2;  /* באנרים רכים: שגיאה מרגיעה, אופליין */
+
+  /* אדום-ורוד המגדלור: פסים דקורטיביים ותגים. לא צבע שגיאה */
+  --varod:        #E22A5B;
+
+  /* אדום הקלטה: רק נקודת ההקלטה וכפתור הסיום */
+  --adom:         #C81E45;
+  --adom-zohier:  #FF3B5F;  /* הנקודה המהבהבת על רקע כהה */
+
+  /* טורקיז וכחול: אישורים, הצלחות, קישורים ופוקוס */
+  --turkiz:       #58C7BE;  /* דקורטיבי */
+  --turkiz-kehe:  #085E56;  /* טקסט הצלחה, AAA על לבן */
+  --turkiz-rakh:  #DDF4F0;  /* רקע באנר הצלחה */
+  --kachol:       #1A45BD;  /* קישורים, AAA על לבן */
+  --kachol-zohier:#2B62D9;  /* טבעת פוקוס */
+
+  /* דיו ורקע */
+  --deyo:         #241E3D;  /* טקסט ראשי וקווי מתאר */
+  --afor:         #575170;  /* טקסט משני, AAA על לבן */
+  --lavan:        #FFFFFF;
+  --reka:         #F7F4FB;  /* רקע העמוד: לבנדר חם, לא לבן בוהק */
+  --reka-kehe:    #191233;  /* מסך הצפייה הכהה */
+
+  /* צורה */
+  --radius:       22px;
+  --radius-katan: 14px;
+  --kav: 3px solid var(--deyo);              /* קו המתאר העבה */
+  --tsel-kartis: 6px 6px 0 #DCD5F0;          /* צל קשיח לכרטיסים */
+  --tsel-kaftor: 0 5px 0 var(--deyo);        /* צל קשיח לכפתורים */
+}
+
+/* ---- בסיס ---- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { height: 100%; }
+
+body {
+  font-family: "Heebo", -apple-system, "Segoe UI", Arial, sans-serif;
+  background: var(--reka);
+  color: var(--deyo);
+  font-size: 20px;
+  line-height: 1.55;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 16px 16px 48px;
+  min-height: 100%;
+}
+
+h1 { font-size: 26px; font-weight: 900; }
+h2 { font-size: 22px; font-weight: 700; margin-top: 8px; }
+p  { font-size: 20px; }
+.small { font-size: 18px; color: var(--afor); }
+
+a { color: var(--kachol); font-weight: 500; text-decoration-thickness: 2px; }
+
+:focus-visible {
+  outline: 4px solid var(--kachol-zohier);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ---- מסכים (SPA) ---- */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ---- כותרת מותג (חדש) ----
+   בלוק סגול עם שם האפליקציה בצהוב, ומתחתיו פס פסי-מגדלור */
+.app-header {
+  background: var(--sagol);
+  color: var(--lavan);
+  border: var(--kav);
+  border-radius: var(--radius);
+  padding: 18px 22px 16px;
+  box-shadow: var(--tsel-kartis);
+  position: relative;
+}
+.app-header .brand {
+  color: var(--tsahov);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+.app-header .greeting {
+  font-size: 24px;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+/* פס פסי-מגדלור: קישוט מותג דק, מתחת לכותרת או בין אזורים (חדש) */
+.stripe-band {
+  height: 12px;
+  margin: 14px 6px 2px;
+  border: 2px solid var(--deyo);
+  border-radius: 999px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--varod) 0 12px,
+    var(--lavan) 12px 24px
+  );
+}
+
+/* ---- כותרות מסך וסעיף ---- */
+/* כותרת עם מדגש צהוב, כמו מרקר על הנייר (חדש) */
+.screen-title {
+  display: inline;
+  font-size: 24px;
+  font-weight: 900;
+  background: linear-gradient(transparent 60%, var(--tsahov) 60% 94%, transparent 94%);
+  padding: 0 4px;
+}
+
+/* תגית סעיף נטויה קלות, ברוח כרטיסי הזרקורים (חדש) */
+.chip {
+  display: inline-block;
+  background: var(--tsahov);
+  color: var(--deyo);
+  border: var(--kav);
+  border-radius: 12px;
+  padding: 2px 16px;
+  font-size: 20px;
+  font-weight: 700;
+  transform: rotate(-2deg);
+  margin: 18px 0 4px;
+}
+
+/* ---- כפתורים ---- */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius-katan);
+}
+
+/* הפעולה הראשית: צהוב פנס, דיו כהה, קו מתאר וצל קשיח.
+   אחד כזה לכל מסך, לא יותר */
+.btn-primary {
+  display: block;
+  width: 100%;
+  min-height: 64px;
+  background: var(--tsahov);
+  color: var(--deyo);
+  font-size: 24px;
+  font-weight: 700;
+  border: var(--kav);
+  border-radius: 18px;
+  box-shadow: var(--tsel-kaftor);
+  margin-top: 16px;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.btn-primary:hover { background: var(--tsahov-lachuts); }
+.btn-primary:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--deyo);
+}
+.btn-primary:disabled {
+  background: #E5E1F0;
+  color: var(--afor);
+  border-color: #B9B2CE;
+  box-shadow: 0 5px 0 #B9B2CE;
+  cursor: default;
+  transform: none;
+}
+
+/* כפתור הבית הענק: לב מסך הבית, גדול פי שלושה מכל דבר אחר */
+.btn-hero {
+  display: block;
+  width: 100%;
+  min-height: 104px;
+  background: var(--tsahov);
+  color: var(--deyo);
+  font-size: 26px;
+  font-weight: 900;
+  border: var(--kav);
+  border-radius: 26px;
+  box-shadow: 0 7px 0 var(--deyo);
+  margin-top: 16px;
+  position: relative;
+  z-index: 1;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.btn-hero:hover { background: var(--tsahov-lachuts); }
+.btn-hero:active {
+  transform: translateY(4px);
+  box-shadow: 0 3px 0 var(--deyo);
+}
+
+/* קרן זרקור: עוטפים את כפתור הבית ב-div.beam והאור נדלק מאחוריו (חדש) */
+.beam { position: relative; }
+.beam::before {
+  content: "";
+  position: absolute;
+  inset: -34px -22px -18px;
+  background: radial-gradient(ellipse 75% 90% at 50% 0%, rgba(255, 204, 0, .38), transparent 68%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* כפתור משני: לבן עם קו מתאר סגול. פעולה לגיטימית, לא הפעולה */
+.btn-secondary {
+  display: block;
+  width: 100%;
+  min-height: 56px;
+  background: var(--lavan);
+  border: 3px solid var(--sagol);
+  color: var(--sagol);
+  font-size: 20px;
+  font-weight: 700;
+  border-radius: 16px;
+  box-shadow: 0 4px 0 #C9C1E4;
+  margin-top: 12px;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.btn-secondary:hover { background: var(--sagol-krem); }
+.btn-secondary:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #C9C1E4;
+}
+
+/* כפתור שקט: דחייה בלי אשמה ("אשלח אחר כך") */
+.btn-quiet {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  background: transparent;
+  color: var(--afor);
+  font-size: 19px;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  margin-top: 8px;
+}
+.btn-quiet:hover { color: var(--deyo); }
+
+/* כפתור סיום ההקלטה: האדום היחיד שמותר ללחוץ עליו.
+   .btn-danger הוא שם נרדף, לפעולות הרסניות בכלל */
+.btn-stop,
+.btn-danger {
+  display: block;
+  width: 100%;
+  min-height: 72px;
+  background: var(--adom);
+  color: var(--lavan);
+  font-size: 26px;
+  font-weight: 700;
+  border: var(--kav);
+  border-radius: 20px;
+  box-shadow: var(--tsel-kaftor);
+  margin-top: 12px;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.btn-stop:active,
+.btn-danger:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--deyo);
+}
+
+/* ---- באנרים והודעות מצב ----
+   .notice הוא השם שהמפתח כבר משתמש בו, .status-banner שם נרדף.
+   ברירת המחדל היא הצהוב הרך: שגיאות אצלנו מרגיעות, לא צועקות */
+.notice,
+.status-banner {
+  margin-top: 14px;
+  padding: 14px 18px;
+  border: var(--kav);
+  border-radius: 16px;
+  background: var(--tsahov-rakh);
+  color: var(--deyo);
+  font-size: 20px;
+  animation: card-in .35s ease-out both;
+}
+.notice.ok,
+.status-banner.ok {
+  background: var(--turkiz-rakh);
+}
+.notice.ok strong { color: var(--turkiz-kehe); }
+.notice.plain,
+.status-banner.plain {
+  background: var(--sagol-krem);
+}
+
+/* פס אופליין צמוד לראש המסך */
+.offline-bar {
+  display: none;
+  margin: -16px -16px 12px;
+  padding: 12px 16px;
+  background: var(--tsahov-rakh);
+  color: var(--deyo);
+  border-bottom: var(--kav);
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+}
+body.offline .offline-bar { display: block; }
+
+/* ---- כרטיסים ---- */
+.card {
+  background: var(--lavan);
+  border: var(--kav);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-top: 14px;
+  box-shadow: var(--tsel-kartis);
+  animation: card-in .35s ease-out both;
+}
+.card .title { font-size: 22px; font-weight: 700; }
+.card .meta { font-size: 18px; color: var(--afor); margin-top: 2px; }
+.card .status { font-size: 18px; margin-top: 8px; }
+.card .status.viewed { color: var(--turkiz-kehe); font-weight: 500; }
+
+/* שלד טעינה */
+.skeleton {
+  background: var(--sagol-krem);
+  border-radius: var(--radius);
+  height: 96px;
+  margin-top: 14px;
+  animation: pulse 1.3s infinite ease-in-out;
+}
+
+/* מצב ריק: פסקת חיבוק, לא תיקייה עצובה (חדש) */
+.empty-state {
+  background: var(--sagol-krem);
+  border: 3px dashed var(--sagol);
+  border-radius: var(--radius);
+  padding: 26px 22px;
+  margin-top: 14px;
+  text-align: center;
+  font-size: 20px;
+  color: var(--deyo);
+}
+
+/* ---- פס התקדמות: "עולה לענן" ----
+   פסים סגולים אלכסוניים שזזים לאט. חי, אבל לא לחוץ */
+.progress-track {
+  height: 18px;
+  border: 2px solid var(--deyo);
+  border-radius: 999px;
+  background: var(--sagol-krem);
+  overflow: hidden;
+  margin-top: 10px;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--sagol) 0 14px,
+    var(--sagol-bahir) 14px 28px
+  );
+  background-size: 40px 40px;
+  animation: stripes-move 1.6s linear infinite;
+  transition: width .6s ease;
+}
+
+/* ---- טפסים ---- */
+label { display: block; font-size: 19px; font-weight: 500; margin-top: 14px; }
+input[type="text"], input[type="tel"], input[type="email"], select, textarea {
+  font-family: inherit;
+  font-size: 20px;
+  width: 100%;
+  min-height: 60px;
+  border: var(--kav);
+  border-radius: var(--radius-katan);
+  background: var(--lavan);
+  padding: 10px 16px;
+  margin-top: 6px;
+  color: var(--deyo);
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--kachol-zohier);
+}
+textarea { min-height: 140px; direction: ltr; text-align: left; font-size: 16px; }
+
+/* בורר מכשירים (מצלמה ומיקרופון), כמו בזום אבל ענק (חדש).
+   ה-select הרגיל מקבל חץ משלנו בצד שמאל (סוף השורה בעברית) */
+select, .device-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='14' viewBox='0 0 22 14'><path d='M2 2l9 9 9-9' fill='none' stroke='%23241E3D' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: left 18px center;
+  padding-inline-end: 52px;
+}
+.device-field { margin-top: 4px; }
+
+/* מד קול חי: מתמלא טורקיז כשקול נקלט (חדש) */
+.mic-meter {
+  height: 16px;
+  border: 2px solid var(--deyo);
+  border-radius: 999px;
+  background: var(--sagol-krem);
+  overflow: hidden;
+  margin-top: 8px;
+}
+.mic-meter-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--turkiz);
+  border-radius: 999px;
+  transition: width .1s linear;
+}
+
+/* ---- וידאו והקלטה ---- */
+.video-wrap {
+  position: relative;
+  margin-top: 16px;
+  border: var(--kav);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #000;
+}
+.video-wrap video { width: 100%; display: block; }
+
+/* ה-HUD: חייב להיקרא מחמישה מטרים */
+.hud {
+  position: absolute;
+  top: 10px; right: 10px; left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(23, 16, 46, .78);
+  color: var(--lavan);
+  border-radius: 16px;
+  padding: 10px 16px;
+}
+.rec-dot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--adom-zohier);
+  box-shadow: 0 0 0 5px rgba(255, 59, 95, .28);
+  animation: blink 1.4s infinite;
+  flex: none;
+}
+.timer {
+  font-size: 52px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  line-height: 1.1;
+}
+.hud-note { font-size: 18px; }
+.mic-note { font-size: 18px; margin-inline-start: auto; }
+.mic-note.ok { color: #8FE8DF; }
+.mic-note.bad { color: #FFB9C6; }
+
+/* ---- בחירת מנטורים ---- */
+.mentor-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 72px;
+  background: var(--lavan);
+  border: var(--kav);
+  border-radius: 18px;
+  padding: 10px 16px;
+  margin-top: 10px;
+  font-size: 21px;
+  text-align: right;
+  color: var(--deyo);
+  box-shadow: 0 4px 0 #DCD5F0;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.mentor-card:active { transform: translateY(2px); box-shadow: 0 2px 0 #DCD5F0; }
+.mentor-card .check {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 3px solid var(--afor);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 900;
+  color: transparent;
+}
+.mentor-card.selected {
+  border-color: var(--sagol);
+  background: var(--sagol-krem);
+  box-shadow: 0 4px 0 var(--sagol);
+}
+.mentor-card.selected .check {
+  background: var(--sagol);
+  border-color: var(--sagol);
+  color: var(--tsahov);
+  transform: rotate(-8deg);
+}
+
+/* ---- שלבי הכנה ---- */
+.prep-illustration {
+  display: block;
+  margin: 18px auto 0;
+  max-width: 100%;
+}
+
+/* ---- מסך הצפייה הכהה (המנטור) ----
+   מוסיפים class="watch" ל-body. סגול לילה, מסגרת פנס צהובה לנגן */
+body.watch {
+  background: var(--reka-kehe);
+  color: var(--lavan);
+}
+body.watch .small { color: #C4BDE0; }
+body.watch .card {
+  background: #251C4D;
+  border-color: #4A3A8C;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, .35);
+  color: var(--lavan);
+}
+body.watch .card .meta { color: #C4BDE0; }
+body.watch .video-wrap {
+  border: 3px solid var(--tsahov);
+  box-shadow: 0 0 0 6px rgba(255, 204, 0, .12);
+}
+body.watch .btn-secondary {
+  background: transparent;
+  border-color: var(--tsahov);
+  color: var(--tsahov);
+  box-shadow: 0 4px 0 rgba(255, 204, 0, .25);
+}
+body.watch .btn-secondary:hover { background: rgba(255, 204, 0, .1); }
+body.watch a { color: #9DB8FF; }
+body.watch :focus-visible { outline-color: var(--tsahov); }
+
+/* ---- פאנל אדמין ---- */
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 14px;
+  border: var(--kav);
+  border-radius: 16px;
+  background: var(--lavan);
+}
+table { border-collapse: collapse; width: 100%; font-size: 18px; }
+th, td { padding: 12px 14px; text-align: right; }
+th {
+  font-weight: 700;
+  background: var(--sagol);
+  color: var(--lavan);
+  white-space: nowrap;
+}
+tr:nth-child(even) td { background: var(--sagol-krem); }
+td { border-bottom: 1px solid #DCD5F0; }
+tr:last-child td { border-bottom: none; }
+tr.flagged td { background: var(--tsahov-rakh); }
+
+/* תגי סטטוס לטבלה ולכרטיסים (חדש) */
+.tag {
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 700;
+  border: 2px solid var(--deyo);
+  border-radius: 999px;
+  padding: 1px 12px;
+  white-space: nowrap;
+}
+.tag-ok { background: var(--turkiz-rakh); }
+.tag-stuck { background: #FADDE6; }
+
+/* תג "חדש": צהוב פנס עם דיו, בולט ולא צועק */
+.badge-new {
+  display: inline-block;
+  background: var(--tsahov);
+  color: var(--deyo);
+  font-size: 16px;
+  font-weight: 700;
+  border: 2px solid var(--deyo);
+  border-radius: 10px;
+  padding: 1px 10px;
+  margin-inline-start: 8px;
+  transform: rotate(-2deg);
+}
+
+/* ---- באנר פיתוח ---- */
+.dev-banner {
+  display: none;
+  margin: -16px -16px 12px;
+  padding: 8px 16px;
+  background: var(--deyo);
+  color: var(--tsahov);
+  font-size: 16px;
+  text-align: center;
+}
+body.dev .dev-banner { display: block; }
+
+/* ---- אנימציות ----
+   נועז בצבע, רגוע בתנועה: הכול קצר, עדין וחד-פעמי,
+   חוץ מנקודת ההקלטה ופס ההעלאה שחייבים להרגיש חיים */
+@keyframes blink { 50% { opacity: .25; } }
+@keyframes pulse { 50% { opacity: .55; } }
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes stripes-move {
+  from { background-position: 0 0; }
+  to   { background-position: 40px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  /* נקודת ההקלטה חייבת חיווי גם בלי תנועה */
+  .rec-dot { box-shadow: 0 0 0 5px rgba(255, 59, 95, .5); }
+}
+
+/* ---- עזרים ---- */
+.center { text-align: center; }
+.mt { margin-top: 16px; }
+.hidden { display: none !important; }
