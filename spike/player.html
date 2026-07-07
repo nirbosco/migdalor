@@ -22,6 +22,15 @@
 <video id="v" controls playsinline preload="metadata"></video>
 <script>
   const v = document.getElementById("v"), note = document.getElementById("note");
+  // קובצי webm של MediaRecorder מגיעים בלי משך (duration=Infinity).
+  // הטריק המוכר: קפיצה לסוף מאלצת את הדפדפן לחשב את המשך האמיתי, ואז חוזרים להתחלה.
+  v.addEventListener("loadedmetadata", () => {
+    if (v.duration === Infinity) {
+      const back = () => { v.removeEventListener("seeked", back); v.currentTime = 0; };
+      v.addEventListener("seeked", back);
+      v.currentTime = 1e7;
+    }
+  });
   document.getElementById("play").onclick = () => {
     const url = document.getElementById("src").value.trim();
     if (!url) return;
