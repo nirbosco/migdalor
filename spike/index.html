@@ -77,6 +77,8 @@
 <button id="stopBtn">סיום</button>
 <button id="resumeBtn">להמשיך לצלם (אחרי הפרעה)</button>
 <button id="recoverBtn">לשחזר הקלטה קודמת</button>
+<button id="uploadBtn" style="display:none; background:#d9530f; color:#fff; border:none">להעלות לענן לבדיקה</button>
+<div id="uploadResult" style="display:none; margin-top:12px; padding:12px; background:#e8f5e9; border-radius:12px; font-size:18px"></div>
 <button id="downloadBtn">להוריד את הקובץ לבדיקה</button>
 
 <div id="videoWrap">
@@ -398,7 +400,64 @@
       const a = document.createElement("a");
       a.href = url;
       a.download = "migdalor-spike-" + new Date().toISOString().replace(/[:.]/g, "-") + (mime.includes("mp4") ? ".mp4" : ".webm");
+      document.body.appendChild(a);
       a.click();
+      setTimeout(() => a.remove(), 1000);
+    };
+
+    // העלאה ישירה לענן, בלי להוריד קובץ בכלל (הזרימה של המערכת האמיתית)
+    const WORKER_BASE = "https://migdalor-spike.nirbosco-com-yotzer-education.workers.dev";
+    const upBtn = $("uploadBtn");
+    upBtn.style.display = "block";
+    upBtn.onclick = () => {
+      let token = localStorage.getItem("migdalor_token") || "";
+      if (!token) {
+        token = (window.prompt("הדביקו את טוקן הבדיקה (SPIKE_TOKEN):") || "").trim();
+        if (!token) return;
+        localStorage.setItem("migdalor_token", token);
+      }
+      const key = "phone-test-" + new Date().toISOString().replace(/[:.]/g, "-") + (mime.includes("mp4") ? ".mp4" : ".webm");
+      const totalMin = Math.max(1, Math.round(elapsedBase / 60));
+      upBtn.disabled = true; upBtn.textContent = "מעלה...";
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", `${WORKER_BASE}/u/${encodeURIComponent(key)}?t=${encodeURIComponent(token)}`);
+      xhr.setRequestHeader("content-type", mime.split(";")[0]);
+      xhr.upload.onprogress = (e) => {
+        if (!e.lengthComputable) return;
+        const doneMin = Math.round(e.loaded / e.total * totalMin * 10) / 10;
+        setStatus(`עולה לענן: ${doneMin} מתוך ${totalMin} דקות. לא לסגור את החלון.`, true);
+      };
+      xhr.onload = () => {
+        upBtn.disabled = false;
+        if (xhr.status === 200) {
+          upBtn.style.display = "none";
+          const viewUrl = `${WORKER_BASE}/v/${encodeURIComponent(key)}?t=${encodeURIComponent(token)}`;
+          const playerUrl = "https://nirbosco.github.io/migdalor/spike/player.html?src=" + encodeURIComponent(viewUrl);
+          setStatus("הסרטון עלה לענן. עכשיו הבדיקה החשובה: לפתוח בנגן ולדלג בציר הזמן.", true);
+          const res = $("uploadResult");
+          res.style.display = "block";
+          res.innerHTML = '<a href="' + playerUrl + '" target="_blank" style="color:#2e7d32; font-weight:700">לחצו כאן לפתיחת הסרטון בנגן הבדיקה</a>';
+          log("UPLOADED key=" + key);
+        } else if (xhr.status === 403) {
+          upBtn.textContent = "להעלות לענן לבדיקה";
+          localStorage.removeItem("migdalor_token");
+          setStatus("הטוקן לא נכון. לוחצים שוב על ההעלאה ומדביקים אותו מחדש.", false);
+        } else if (xhr.status === 413) {
+          upBtn.textContent = "להעלות לענן לבדיקה";
+          setStatus("הקובץ גדול ממגבלת ההעלאה של הבדיקה (100MB). במערכת האמיתית ההעלאה תפוצל למקטעים. אפשר לצלם קטע קצר יותר לבדיקה.", false);
+          log("upload 413: file " + mb(blob.size) + " exceeds worker body limit");
+        } else {
+          upBtn.textContent = "להעלות לענן לבדיקה";
+          setStatus("ההעלאה נכשלה (" + xhr.status + "). הסרטון עדיין שמור בטלפון, אפשר לנסות שוב.", false);
+          log("upload failed: " + xhr.status + " " + xhr.responseText);
+        }
+      };
+      xhr.onerror = () => {
+        upBtn.disabled = false; upBtn.textContent = "להעלות לענן לבדיקה";
+        setStatus("בעיית רשת בהעלאה. הסרטון שמור בטלפון, מנסים שוב כשיש חיבור.", false);
+        log("upload network error");
+      };
+      xhr.send(blob);
     };
     $("startBtn").style.display = "block";
     $("startBtn").textContent = "צילום חדש (מוחק את הקודם)";

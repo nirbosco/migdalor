@@ -38,7 +38,9 @@
     v.src = url;
     v.play().catch(e => note.textContent = "שגיאת ניגון: " + e.message);
   };
-  document.getElementById("src").value = localStorage.getItem("migdalor_player_src") || "";
+  const fromLink = new URLSearchParams(location.search).get("src");
+  document.getElementById("src").value = fromLink || localStorage.getItem("migdalor_player_src") || "";
+  if (fromLink) note.textContent = "הכתובת התקבלה מהקישור. לוחצים לנגן.";
   v.addEventListener("error", () => note.textContent = "שגיאה בטעינת הווידאו (קוד " + (v.error && v.error.code) + "). בודקים את הכתובת והטוקן.");
   v.addEventListener("waiting", () => note.textContent = "טוען...");
   v.addEventListener("playing", () => note.textContent = "מנגן. עכשיו לדלג בציר הזמן קדימה ואחורה ולראות שהדילוג מהיר.");
