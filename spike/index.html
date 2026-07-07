@@ -67,7 +67,7 @@
 
 <div id="videoWrap">
   <video id="preview" autoplay muted playsinline></video>
-  <div id="hud"><div id="dot"></div><div id="timer">00:00</div><div id="hudNote" style="font-size:15px">מקליט ושומר</div></div>
+  <div id="hud"><div id="dot"></div><div id="timer">00:00</div><div id="hudNote" style="font-size:15px">מקליט ושומר</div><div id="micNote" style="font-size:15px; margin-inline-start:auto">🎤 ...</div></div>
 </div>
 
 <video id="playback" controls playsinline></video>
@@ -86,6 +86,7 @@
   const TARGET = { width: 854, height: 480, videoBps: 1500000, audioBps: 96000 };
 
   let db, mediaStream, recorder, wakeLock = null;
+  let audioCtx = null, meterInt = null, silentMs = 0;
   let recording = false, seq = 0, session = Date.now();
   let startedAt = 0, elapsedBase = 0, timerInt = null, bytesTotal = 0, chunkCount = 0;
   let chosenMime = "";
@@ -135,9 +136,11 @@
 
   // ---------- capability checks ----------
   function pickMime() {
+    // webm+opus קודם: בכרום/אנדרואיד הצירוף mp4+AAC מדווח כנתמך אבל מוקלט בלי קול
+    // (ל-Chromium אין מקודד AAC). ספארי/אייפון לא תומך webm ולכן יפול ל-mp4 רגיל,
+    // ושם ספארי בוחר בעצמו H.264+AAC עם קול תקין.
     const candidates = [
-      'video/mp4;codecs="avc1.42E01E,mp4a.40.2"', "video/mp4",
-      'video/webm;codecs="vp8,opus"', "video/webm"
+      'video/webm;codecs="vp8,opus"', "video/webm", "video/mp4"
     ];
     for (const c of candidates) {
       if (window.MediaRecorder && MediaRecorder.isTypeSupported(c)) return c;
@@ -159,6 +162,44 @@
       const p = await navigator.storage.persist();
       log("storage.persist: " + p);
     } catch (e) { log("storage.persist unavailable"); }
+  }
+
+  function startMeter(stream) {
+    const micEl = $("micNote");
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const src = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 512;
+      src.connect(analyser);
+      const buf = new Float32Array(analyser.fftSize);
+      let warned = false;
+      meterInt = setInterval(() => {
+        analyser.getFloatTimeDomainData(buf);
+        let sum = 0;
+        for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+        const rms = Math.sqrt(sum / buf.length);
+        if (rms > 0.008) {
+          silentMs = 0;
+          micEl.textContent = "🎤 קול נקלט";
+          micEl.style.color = "#9fe89f";
+        } else {
+          silentMs += 400;
+          if (silentMs > 8000) {
+            micEl.textContent = "🎤 לא נשמע קול!";
+            micEl.style.color = "#ff8a80";
+            if (!warned) { warned = true; log("WARNING: 8s of silence on mic (rms~" + rms.toFixed(4) + ")"); }
+          }
+        }
+      }, 400);
+    } catch (e) {
+      micEl.textContent = "🎤 ?";
+      log("audio meter unavailable: " + e.message);
+    }
+  }
+  function stopMeter() {
+    clearInterval(meterInt);
+    if (audioCtx) { audioCtx.close().catch(() => {}); audioCtx = null; }
   }
 
   async function acquireWakeLock() {
@@ -185,6 +226,15 @@
     $("preview").srcObject = mediaStream;
     $("videoWrap").style.display = "block";
     $("playback").style.display = "none";
+
+    const at = mediaStream.getAudioTracks();
+    log(`audio tracks=${at.length}` + (at.length ? ` label="${at[0].label}" muted=${at[0].muted} state=${at[0].readyState}` : " (NO AUDIO TRACK!)"));
+    at.forEach(t => {
+      t.onmute = () => log("audio track MUTED by system");
+      t.onunmute = () => log("audio track unmuted");
+      t.onended = () => log("audio track ENDED");
+    });
+    startMeter(mediaStream);
 
     recorder = new MediaRecorder(mediaStream, { mimeType: chosenMime, videoBitsPerSecond: TARGET.videoBps, audioBitsPerSecond: TARGET.audioBps });
     recorder.ondataavailable = async (e) => {
@@ -220,6 +270,7 @@
     elapsedBase += (Date.now() - startedAt) / 1000;
     clearInterval(timerInt);
     try { recorder && recorder.state !== "inactive" && recorder.stop(); } catch (e) {}
+    stopMeter();
     mediaStream && mediaStream.getTracks().forEach(t => t.stop());
     wakeLock && wakeLock.release().catch(() => {});
     log("capture halted: " + reason);
