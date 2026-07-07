@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>המגדלור: בדיקת הקלטה (ספייק)</title>
+<style>
+  :root {
+    --bg: #faf6ef;
+    --ink: #1a1a1a;
+    --action: #d9530f;
+    --rec: #d32f2f;
+    --soft: #fff3cd;
+    --ok: #2e7d32;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Heebo", -apple-system, "Segoe UI", Arial, sans-serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 640px; margin: 0 auto; padding: 16px;
+    font-size: 20px; line-height: 1.5;
+  }
+  h1 { font-size: 24px; margin-bottom: 4px; }
+  .sub { font-size: 18px; color: #555; margin-bottom: 16px; }
+  button {
+    font-family: inherit; font-size: 24px; font-weight: 600;
+    width: 100%; min-height: 72px; border: none; border-radius: 16px;
+    cursor: pointer; margin-top: 12px;
+  }
+  #startBtn { background: var(--action); color: #fff; }
+  #stopBtn { background: var(--rec); color: #fff; display: none; }
+  #resumeBtn, #recoverBtn, #downloadBtn { background: #fff; border: 3px solid var(--action); color: var(--action); display: none; font-size: 20px; min-height: 60px; }
+  #videoWrap { position: relative; margin-top: 16px; border-radius: 16px; overflow: hidden; background: #000; display: none; }
+  video { width: 100%; display: block; }
+  #hud {
+    position: absolute; top: 8px; right: 8px; left: 8px;
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(0,0,0,.55); color: #fff; border-radius: 12px; padding: 8px 14px;
+  }
+  #dot { width: 18px; height: 18px; border-radius: 50%; background: var(--rec); animation: blink 1.2s infinite; }
+  @keyframes blink { 50% { opacity: .15; } }
+  #timer { font-size: 44px; font-weight: 700; font-variant-numeric: tabular-nums; direction: ltr; }
+  #status { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: var(--soft); font-size: 19px; }
+  #status.ok { background: #e8f5e9; }
+  #stats { margin-top: 10px; font-size: 17px; color: #444; }
+  #playback { width: 100%; margin-top: 12px; border-radius: 12px; display: none; background: #000; }
+  details { margin-top: 20px; font-size: 15px; }
+  #log {
+    direction: ltr; text-align: left; font-family: ui-monospace, Menlo, monospace;
+    font-size: 12.5px; background: #111; color: #9fe89f; border-radius: 10px;
+    padding: 10px; margin-top: 8px; max-height: 260px; overflow-y: auto; white-space: pre-wrap;
+  }
+</style>
+</head>
+<body>
+<h1>המגדלור: בדיקת הקלטה</h1>
+<p class="sub">גרסת ספייק לבדיקת שטח. מצלמים 45 דקות רצוף, מנסים לנעול מסך, לקבל שיחה, לצאת מהדפדפן, ורואים מה שרד.</p>
+
+<div id="status">בודקים את הטלפון...</div>
+<div id="stats"></div>
+
+<button id="startBtn">להתחיל צילום</button>
+<button id="stopBtn">סיום</button>
+<button id="resumeBtn">להמשיך לצלם (אחרי הפרעה)</button>
+<button id="recoverBtn">לשחזר הקלטה קודמת</button>
+<button id="downloadBtn">להוריד את הקובץ לבדיקה</button>
+
+<div id="videoWrap">
+  <video id="preview" autoplay muted playsinline></video>
+  <div id="hud"><div id="dot"></div><div id="timer">00:00</div><div id="hudNote" style="font-size:15px">מקליט ושומר</div></div>
+</div>
+
+<video id="playback" controls playsinline></video>
+
+<details open>
+  <summary>יומן אבחון (לצילום מסך בסוף הבדיקה)</summary>
+  <div id="log"></div>
+</details>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const logEl = $("log"), statusEl = $("status"), statsEl = $("stats"), timerEl = $("timer");
+  const DB_NAME = "migdalor_spike", STORE = "chunks";
+  const TIMESLICE_MS = 10000;
+  const TARGET = { width: 854, height: 480, videoBps: 1500000, audioBps: 96000 };
+
+  let db, mediaStream, recorder, wakeLock = null;
+  let recording = false, seq = 0, session = Date.now();
+  let startedAt = 0, elapsedBase = 0, timerInt = null, bytesTotal = 0, chunkCount = 0;
+  let chosenMime = "";
+
+  function log(msg) {
+    const t = new Date().toISOString().substr(11, 8);
+    logEl.textContent += `[${t}] ${msg}\n`;
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function setStatus(msg, ok) {
+    statusEl.textContent = msg;
+    statusEl.className = ok ? "ok" : "";
+  }
+  function fmt(s) {
+    const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+    return String(m).padStart(2, "0") + ":" + String(sec).padStart(2, "0");
+  }
+  function mb(n) { return (n / 1048576).toFixed(1) + "MB"; }
+
+  // ---------- IndexedDB ----------
+  function openDB() {
+    return new Promise((res, rej) => {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore(STORE, { keyPath: "id" });
+      req.onsuccess = () => res(req.result);
+      req.onerror = () => rej(req.error);
+    });
+  }
+  function putChunk(blob) {
+    return new Promise((res, rej) => {
+      const tx = db.transaction(STORE, "readwrite");
+      tx.objectStore(STORE).put({ id: `${session}-${String(seq).padStart(6, "0")}`, session, seq, blob, mime: chosenMime, ts: Date.now() });
+      seq++;
+      tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+    });
+  }
+  function allChunks() {
+    return new Promise((res, rej) => {
+      const req = db.transaction(STORE).objectStore(STORE).getAll();
+      req.onsuccess = () => res(req.result.sort((a, b) => a.id < b.id ? -1 : 1));
+      req.onerror = () => rej(req.error);
+    });
+  }
+  function clearChunks() {
+    return new Promise(res => { const tx = db.transaction(STORE, "readwrite"); tx.objectStore(STORE).clear(); tx.oncomplete = res; });
+  }
+
+  // ---------- capability checks ----------
+  function pickMime() {
+    const candidates = [
+      'video/mp4;codecs="avc1.42E01E,mp4a.40.2"', "video/mp4",
+      'video/webm;codecs="vp8,opus"', "video/webm"
+    ];
+    for (const c of candidates) {
+      if (window.MediaRecorder && MediaRecorder.isTypeSupported(c)) return c;
+    }
+    return "";
+  }
+
+  async function estimateSpace() {
+    try {
+      const { usage, quota } = await navigator.storage.estimate();
+      const free = quota - usage;
+      const minutes = Math.floor(free / (TARGET.videoBps / 8 * 60) * 0.8); // 20% margin
+      return { free, minutes };
+    } catch (e) { return null; }
+  }
+
+  async function requestPersist() {
+    try {
+      const p = await navigator.storage.persist();
+      log("storage.persist: " + p);
+    } catch (e) { log("storage.persist unavailable"); }
+  }
+
+  async function acquireWakeLock() {
+    try {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => log("wakeLock released"));
+      log("wakeLock acquired");
+    } catch (e) { log("wakeLock FAILED: " + e.message); }
+  }
+
+  // ---------- recording ----------
+  async function start(freshSession) {
+    if (freshSession) { session = Date.now(); seq = 0; elapsedBase = 0; bytesTotal = 0; chunkCount = 0; }
+    try {
+      mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: TARGET.width }, height: { ideal: TARGET.height }, frameRate: { ideal: 24 } },
+        audio: true
+      });
+    } catch (e) {
+      setStatus("הטלפון לא נתן לנו לפתוח את המצלמה. בהגדרות הדפדפן צריך לאשר מצלמה ומיקרופון, ואז לרענן.", false);
+      log("getUserMedia FAILED: " + e.name + " " + e.message);
+      return;
+    }
+    $("preview").srcObject = mediaStream;
+    $("videoWrap").style.display = "block";
+    $("playback").style.display = "none";
+
+    recorder = new MediaRecorder(mediaStream, { mimeType: chosenMime, videoBitsPerSecond: TARGET.videoBps, audioBitsPerSecond: TARGET.audioBps });
+    recorder.ondataavailable = async (e) => {
+      if (!e.data || !e.data.size) return;
+      bytesTotal += e.data.size; chunkCount++;
+      try { await putChunk(e.data); }
+      catch (err) { log("IDB WRITE FAILED: " + err); setStatus("בעיה בשמירה לטלפון. כדאי לסיים ולהוריד את מה שיש.", false); }
+      if (chunkCount % 6 === 0) log(`chunks=${chunkCount} total=${mb(bytesTotal)}`);
+      statsEl.textContent = `נשמרו ${chunkCount} מקטעים, ${mb(bytesTotal)}`;
+    };
+    recorder.onerror = (e) => log("MediaRecorder ERROR: " + (e.error && e.error.message));
+    recorder.onstart = () => log(`recorder started, mime=${chosenMime}`);
+    recorder.start(TIMESLICE_MS);
+
+    recording = true;
+    startedAt = Date.now();
+    $("startBtn").style.display = "none";
+    $("resumeBtn").style.display = "none";
+    $("recoverBtn").style.display = "none";
+    $("downloadBtn").style.display = "none";
+    $("stopBtn").style.display = "block";
+    setStatus("מקליט. אפשר עכשיו לנסות לנעול מסך, לקבל שיחה, לעבור אפליקציה. הכול נרשם ביומן.", true);
+    await acquireWakeLock();
+    timerInt = setInterval(() => { timerEl.textContent = fmt(elapsedBase + (Date.now() - startedAt) / 1000); }, 500);
+
+    const bat = navigator.getBattery && await navigator.getBattery().catch(() => null);
+    if (bat) log(`battery=${Math.round(bat.level * 100)}% charging=${bat.charging}`);
+  }
+
+  function haltCapture(reason) {
+    if (!recording) return;
+    recording = false;
+    elapsedBase += (Date.now() - startedAt) / 1000;
+    clearInterval(timerInt);
+    try { recorder && recorder.state !== "inactive" && recorder.stop(); } catch (e) {}
+    mediaStream && mediaStream.getTracks().forEach(t => t.stop());
+    wakeLock && wakeLock.release().catch(() => {});
+    log("capture halted: " + reason);
+  }
+
+  async function finishAndAssemble() {
+    haltCapture("user stop");
+    $("stopBtn").style.display = "none";
+    $("videoWrap").style.display = "none";
+    setStatus("מרכיבים את הקובץ מהמקטעים ששמורים בטלפון...", true);
+    // give the last ondataavailable a moment to flush
+    await new Promise(r => setTimeout(r, 800));
+    const rows = await allChunks();
+    if (!rows.length) { setStatus("לא נמצאו מקטעים שמורים. זה כשל בדיקה חשוב, לצלם מסך של היומן.", false); return; }
+    const mime = rows[0].mime || chosenMime || "video/webm";
+    const blob = new Blob(rows.map(r => r.blob), { type: mime.split(";")[0] });
+    const url = URL.createObjectURL(blob);
+    const pb = $("playback");
+    pb.src = url; pb.style.display = "block";
+    const sessions = new Set(rows.map(r => r.session)).size;
+    setStatus(`ההקלטה שרדה: ${rows.length} מקטעים, ${mb(blob.size)}, ${sessions} קטע(ים) רצופים. לנגן לבדיקת תמונה וקול, ואז להוריד.`, true);
+    log(`ASSEMBLED size=${mb(blob.size)} chunks=${rows.length} sessions=${sessions} mime=${mime}`);
+    const dl = $("downloadBtn");
+    dl.style.display = "block";
+    dl.onclick = () => {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "migdalor-spike-" + new Date().toISOString().replace(/[:.]/g, "-") + (mime.includes("mp4") ? ".mp4" : ".webm");
+      a.click();
+    };
+    $("startBtn").style.display = "block";
+    $("startBtn").textContent = "צילום חדש (מוחק את הקודם)";
+    $("startBtn").onclick = async () => { await clearChunks(); location.reload(); };
+  }
+
+  // ---------- interruption handling ----------
+  document.addEventListener("visibilitychange", async () => {
+    log("visibility: " + document.visibilityState + (recording ? " (recording)" : ""));
+    if (document.visibilityState === "visible" && recording && recorder && recorder.state === "recording") {
+      await acquireWakeLock();
+    }
+    if (document.visibilityState === "visible" && !recording && chunkCount > 0 && $("stopBtn").style.display === "block") {
+      // capture died while hidden
+      $("stopBtn").style.display = "none";
+      $("resumeBtn").style.display = "block";
+      setStatus(`הכול בסדר: ההקלטה נשמרה עד לרגע ההפרעה (${fmt(elapsedBase)}). אפשר להמשיך או לסיים.`, true);
+    }
+  });
+  window.addEventListener("pagehide", () => log("pagehide fired" + (recording ? " while RECORDING" : "")));
+  // if the track itself dies (call took the camera), stop cleanly and offer resume
+  function watchTracks() {
+    if (!mediaStream) return;
+    mediaStream.getVideoTracks().forEach(t => {
+      t.onended = () => {
+        log("video track ENDED (probably a call or camera grab)");
+        haltCapture("track ended");
+        $("stopBtn").style.display = "none";
+        $("resumeBtn").style.display = "block";
+        setStatus(`ההקלטה נעצרה על ידי הטלפון ונשמרה עד לרגע העצירה (${fmt(elapsedBase)}). אפשר להמשיך לצלם.`, true);
+      };
+    });
+  }
+  const origStart = start;
+  start = async function (fresh) { await origStart(fresh); watchTracks(); };
+
+  // ---------- boot ----------
+  (async function boot() {
+    log("UA: " + navigator.userAgent);
+    chosenMime = pickMime();
+    if (!chosenMime) {
+      setStatus("הדפדפן הזה לא תומך בהקלטה. זה ממצא חשוב: לצלם מסך ולרשום את דגם הטלפון.", false);
+      $("startBtn").disabled = true;
+      log("NO MediaRecorder support");
+      return;
+    }
+    log("mime chosen: " + chosenMime);
+    db = await openDB();
+    await requestPersist();
+    const est = await estimateSpace();
+    if (est) {
+      log(`storage free=${mb(est.free)} => ~${est.minutes} min at 1.5Mbps`);
+      statsEl.textContent = est.minutes > 120
+        ? "יש מקום בטלפון ליותר משעתיים של צילום."
+        : `יש מקום בטלפון לכ-${est.minutes} דקות של צילום.`;
+    }
+    const leftovers = await allChunks();
+    if (leftovers.length) {
+      const sz = leftovers.reduce((s, r) => s + r.blob.size, 0);
+      setStatus(`נמצאה הקלטה קודמת ששמורה בטלפון (${leftovers.length} מקטעים, ${mb(sz)}). אפשר לשחזר אותה, וזו בדיוק הבדיקה: כלום לא הלך לאיבוד.`, true);
+      $("recoverBtn").style.display = "block";
+      $("recoverBtn").onclick = () => { chunkCount = leftovers.length; finishAndAssemble(); };
+      log(`leftover chunks=${leftovers.length} size=${mb(sz)}`);
+    } else {
+      setStatus("הטלפון מוכן. לוחצים על הכפתור הכתום ומתחילים.", true);
+    }
+    $("startBtn").onclick = async () => { await clearChunks(); start(true); };
+    $("stopBtn").onclick = finishAndAssemble;
+    $("resumeBtn").onclick = () => start(false);
+  })();
+})();
+</script>
+</body>
+</html>
