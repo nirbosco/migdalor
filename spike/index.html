@@ -91,6 +91,7 @@
   <div id="log"></div>
 </details>
 
+<script src="webm-fix.js"></script>
 <script>
 (function () {
   const $ = id => document.getElementById(id);
@@ -376,7 +377,15 @@
     const rows = await allChunks();
     if (!rows.length) { setStatus("לא נמצאו מקטעים שמורים. זה כשל בדיקה חשוב, לצלם מסך של היומן.", false); return; }
     const mime = rows[0].mime || chosenMime || "video/webm";
-    const blob = new Blob(rows.map(r => r.blob), { type: mime.split(";")[0] });
+    let blob = new Blob(rows.map(r => r.blob), { type: mime.split(";")[0] });
+    // תיקון משך: הקלטת webm נשמרת בלי Duration, ובלי זה אי אפשר לדלג בציר הזמן
+    // על קובץ מרוחק. מזריקים את המשך הידוע (elapsedBase, בשניות) לפני שמירה/העלאה.
+    if (mime.indexOf("webm") !== -1 && window.fixWebmDuration && elapsedBase > 0) {
+      try {
+        blob = await window.fixWebmDuration(blob, Math.round(elapsedBase * 1000));
+        log(`webm duration patched to ${elapsedBase.toFixed(1)}s`);
+      } catch (e) { log("duration patch failed: " + e.message); }
+    }
     const url = URL.createObjectURL(blob);
     const pb = $("playback");
     pb.src = url; pb.style.display = "block";
