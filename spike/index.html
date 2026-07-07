@@ -28,7 +28,14 @@
     cursor: pointer; margin-top: 12px;
   }
   #startBtn { background: var(--action); color: #fff; }
+  #recordBtn { background: var(--action); color: #fff; display: none; }
   #stopBtn { background: var(--rec); color: #fff; display: none; }
+  #setup { display: none; margin-top: 12px; }
+  #setup label { display: block; font-size: 17px; color: #444; margin-top: 10px; }
+  #setup select {
+    font-family: inherit; font-size: 18px; width: 100%; min-height: 52px;
+    border: 2px solid #bbb; border-radius: 12px; background: #fff; padding: 8px 12px;
+  }
   #resumeBtn, #recoverBtn, #downloadBtn { background: #fff; border: 3px solid var(--action); color: var(--action); display: none; font-size: 20px; min-height: 60px; }
   #videoWrap { position: relative; margin-top: 16px; border-radius: 16px; overflow: hidden; background: #000; display: none; }
   video { width: 100%; display: block; }
@@ -60,6 +67,13 @@
 <div id="stats"></div>
 
 <button id="startBtn">להתחיל צילום</button>
+<div id="setup">
+  <label for="camSel">מצלמה</label>
+  <select id="camSel"></select>
+  <label for="micSel">מיקרופון</label>
+  <select id="micSel"></select>
+</div>
+<button id="recordBtn">להתחיל הקלטה</button>
 <button id="stopBtn">סיום</button>
 <button id="resumeBtn">להמשיך לצלם (אחרי הפרעה)</button>
 <button id="recoverBtn">לשחזר הקלטה קודמת</button>
@@ -210,22 +224,71 @@
     } catch (e) { log("wakeLock FAILED: " + e.message); }
   }
 
-  // ---------- recording ----------
-  async function start(freshSession) {
-    if (freshSession) { session = Date.now(); seq = 0; elapsedBase = 0; bytesTotal = 0; chunkCount = 0; }
-    try {
-      mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: TARGET.width }, height: { ideal: TARGET.height }, frameRate: { ideal: 24 } },
-        audio: true
+  // ---------- devices & preview ----------
+  let resumeMode = false;
+  const savedDev = {
+    cam: localStorage.getItem("migdalor_cam") || "",
+    mic: localStorage.getItem("migdalor_mic") || ""
+  };
+
+  async function getStream() {
+    const video = { width: { ideal: TARGET.width }, height: { ideal: TARGET.height }, frameRate: { ideal: 24 } };
+    if (savedDev.cam) video.deviceId = { exact: savedDev.cam };
+    const audio = savedDev.mic ? { deviceId: { exact: savedDev.mic } } : true;
+    return navigator.mediaDevices.getUserMedia({ video, audio });
+  }
+
+  function stopStream() {
+    stopMeter();
+    mediaStream && mediaStream.getTracks().forEach(t => t.stop());
+    mediaStream = null;
+  }
+
+  function camFail(e) {
+    setStatus("המכשיר לא נתן לנו לפתוח את המצלמה. בהגדרות הדפדפן צריך לאשר מצלמה ומיקרופון, ואז לרענן.", false);
+    log("getUserMedia FAILED: " + e.name + " " + e.message);
+  }
+
+  async function populateDeviceSelects() {
+    let devs = [];
+    try { devs = await navigator.mediaDevices.enumerateDevices(); }
+    catch (e) { log("enumerateDevices failed: " + e.message); return; }
+    const vt = mediaStream.getVideoTracks()[0], amic = mediaStream.getAudioTracks()[0];
+    const curCam = vt && vt.getSettings().deviceId, curMic = amic && amic.getSettings().deviceId;
+    const fill = (sel, kind, current, fallbackLabel) => {
+      sel.innerHTML = "";
+      const list = devs.filter(d => d.kind === kind);
+      list.forEach((d, i) => {
+        const o = document.createElement("option");
+        o.value = d.deviceId;
+        o.textContent = d.label || `${fallbackLabel} ${i + 1}`;
+        if (d.deviceId === current) o.selected = true;
+        sel.appendChild(o);
       });
+      return list.length;
+    };
+    const nCam = fill($("camSel"), "videoinput", curCam, "מצלמה");
+    const nMic = fill($("micSel"), "audioinput", curMic, "מיקרופון");
+    log(`devices: cameras=${nCam} mics=${nMic}`);
+  }
+
+  async function openPreview() {
+    try {
+      mediaStream = await getStream();
     } catch (e) {
-      setStatus("הטלפון לא נתן לנו לפתוח את המצלמה. בהגדרות הדפדפן צריך לאשר מצלמה ומיקרופון, ואז לרענן.", false);
-      log("getUserMedia FAILED: " + e.name + " " + e.message);
-      return;
+      if (savedDev.cam || savedDev.mic) {
+        log("saved device failed (" + e.name + "), falling back to defaults");
+        savedDev.cam = ""; savedDev.mic = "";
+        localStorage.removeItem("migdalor_cam"); localStorage.removeItem("migdalor_mic");
+        try { mediaStream = await getStream(); } catch (e2) { camFail(e2); return; }
+      } else { camFail(e); return; }
     }
     $("preview").srcObject = mediaStream;
     $("videoWrap").style.display = "block";
     $("playback").style.display = "none";
+    $("dot").style.visibility = "hidden";
+    $("hudNote").textContent = "תצוגה מקדימה, עוד לא מקליט";
+    timerEl.textContent = fmt(elapsedBase);
 
     const at = mediaStream.getAudioTracks();
     log(`audio tracks=${at.length}` + (at.length ? ` label="${at[0].label}" muted=${at[0].muted} state=${at[0].readyState}` : " (NO AUDIO TRACK!)"));
@@ -235,7 +298,32 @@
       t.onended = () => log("audio track ENDED");
     });
     startMeter(mediaStream);
+    await populateDeviceSelects();
 
+    $("startBtn").style.display = "none";
+    $("resumeBtn").style.display = "none";
+    $("recoverBtn").style.display = "none";
+    $("downloadBtn").style.display = "none";
+    $("setup").style.display = "block";
+    $("recordBtn").style.display = "block";
+    $("recordBtn").textContent = resumeMode ? "להמשיך את ההקלטה" : "להתחיל הקלטה";
+    setStatus('בודקים בתצוגה המקדימה שרואים תמונה ושכתוב "קול נקלט". אפשר להחליף מצלמה ומיקרופון, ואז להתחיל.', true);
+  }
+
+  async function switchDevice() {
+    savedDev.cam = $("camSel").value;
+    savedDev.mic = $("micSel").value;
+    localStorage.setItem("migdalor_cam", savedDev.cam);
+    localStorage.setItem("migdalor_mic", savedDev.mic);
+    log("device switched by user");
+    stopStream();
+    await openPreview();
+  }
+
+  // ---------- recording ----------
+  async function beginRecording() {
+    if (!mediaStream) return;
+    if (!resumeMode) { session = Date.now(); seq = 0; elapsedBase = 0; bytesTotal = 0; chunkCount = 0; }
     recorder = new MediaRecorder(mediaStream, { mimeType: chosenMime, videoBitsPerSecond: TARGET.videoBps, audioBitsPerSecond: TARGET.audioBps });
     recorder.ondataavailable = async (e) => {
       if (!e.data || !e.data.size) return;
@@ -251,17 +339,18 @@
 
     recording = true;
     startedAt = Date.now();
-    $("startBtn").style.display = "none";
-    $("resumeBtn").style.display = "none";
-    $("recoverBtn").style.display = "none";
-    $("downloadBtn").style.display = "none";
+    $("setup").style.display = "none";
+    $("recordBtn").style.display = "none";
     $("stopBtn").style.display = "block";
+    $("dot").style.visibility = "visible";
+    $("hudNote").textContent = "מקליט ושומר";
     setStatus("מקליט. אפשר עכשיו לנסות לנעול מסך, לקבל שיחה, לעבור אפליקציה. הכול נרשם ביומן.", true);
     await acquireWakeLock();
     timerInt = setInterval(() => { timerEl.textContent = fmt(elapsedBase + (Date.now() - startedAt) / 1000); }, 500);
 
     const bat = navigator.getBattery && await navigator.getBattery().catch(() => null);
     if (bat) log(`battery=${Math.round(bat.level * 100)}% charging=${bat.charging}`);
+    watchTracks();
   }
 
   function haltCapture(reason) {
@@ -270,8 +359,7 @@
     elapsedBase += (Date.now() - startedAt) / 1000;
     clearInterval(timerInt);
     try { recorder && recorder.state !== "inactive" && recorder.stop(); } catch (e) {}
-    stopMeter();
-    mediaStream && mediaStream.getTracks().forEach(t => t.stop());
+    stopStream();
     wakeLock && wakeLock.release().catch(() => {});
     log("capture halted: " + reason);
   }
@@ -279,6 +367,8 @@
   async function finishAndAssemble() {
     haltCapture("user stop");
     $("stopBtn").style.display = "none";
+    $("setup").style.display = "none";
+    $("recordBtn").style.display = "none";
     $("videoWrap").style.display = "none";
     setStatus("מרכיבים את הקובץ מהמקטעים ששמורים בטלפון...", true);
     // give the last ondataavailable a moment to flush
@@ -333,8 +423,6 @@
       };
     });
   }
-  const origStart = start;
-  start = async function (fresh) { await origStart(fresh); watchTracks(); };
 
   // ---------- boot ----------
   (async function boot() {
@@ -366,9 +454,12 @@
     } else {
       setStatus("הטלפון מוכן. לוחצים על הכפתור הכתום ומתחילים.", true);
     }
-    $("startBtn").onclick = async () => { await clearChunks(); start(true); };
+    $("startBtn").onclick = async () => { await clearChunks(); resumeMode = false; openPreview(); };
+    $("recordBtn").onclick = beginRecording;
     $("stopBtn").onclick = finishAndAssemble;
-    $("resumeBtn").onclick = () => start(false);
+    $("resumeBtn").onclick = () => { resumeMode = true; openPreview(); };
+    $("camSel").onchange = switchDevice;
+    $("micSel").onchange = switchDevice;
   })();
 })();
 </script>
