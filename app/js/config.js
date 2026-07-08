@@ -4,8 +4,8 @@ export const SUPABASE_URL = "https://ndrhiikczkbosentclnh.supabase.co";
 export const SUPABASE_ANON =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5kcmhpaWtjemtib3NlbnRjbG5oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzYwMzcsImV4cCI6MjA5NTkxMjAzN30.KpSEtEHI-i2TQDfuCf8l4Dg1wQ-Ya-UdLEQ6VN3KxEQ";
 
-// כתובת ה-Worker של המוצר. מוחלף אחרי פריסת worker.js (ראו SETUP.md).
-export const WORKER_URL = "WORKER_URL";
+// כתובת ה-Worker של המוצר.
+export const WORKER_URL = "https://migdalor.nirbosco-com-yotzer-education.workers.dev";
 
 // איש הקשר האנושי שמופיע בכל מבוי סתום. מולא בהשקה (ראו SETUP.md).
 export const CONTACT_NAME = "הצוות";
