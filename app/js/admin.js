@@ -10,18 +10,35 @@ import {
   adminOverview,
   upsertRosterRows,
   addAssignments,
+  listRoster,
+  upsertPerson,
+  removeFromRoster,
 } from "./supa.js";
 import { $, show, goScreen, humanDate, watchOnline } from "./ui.js";
+import { initDashShell, wireSort, closePanel } from "./dash-shell.js";
 
 let parsed = null;
+let currentTrainees = [];
+
+// מציג את משטח הניהול (shell מסך-מלא) ומשחרר את רוחב ה-body.
+// מסכי הכניסה נשארים ממורכזים (בלי dash).
+function showAdminShell() {
+  document.body.classList.add("dash");
+  goScreen("screen-admin");
+}
+function showPlainScreen(id) {
+  document.body.classList.remove("dash");
+  goScreen(id);
+}
 
 async function boot() {
   if (DEV) document.body.classList.add("dev");
+  initDashShell();
   watchOnline();
 
   const user = await getUser();
   if (!user) {
-    goScreen("screen-login");
+    showPlainScreen("screen-login");
     return;
   }
   let profile = null;
@@ -31,12 +48,12 @@ async function boot() {
     /* ייחסם למטה */
   }
   if (!profile || profile.role !== "admin") {
-    goScreen("screen-denied");
+    showPlainScreen("screen-denied");
     return;
   }
   $("backToApp").href = devHref("index.html?stay=1");
   $("toMentor").href = devHref("mentor.html");
-  goScreen("screen-admin");
+  showAdminShell();
   await renderOverview();
 }
 
@@ -93,30 +110,86 @@ async function renderOverview() {
     $("failedUploads").appendChild(card);
   }
 
-  // טבלת החותמים
+  // רצועת סיכום
+  const totalTrainees = data.trainees.length;
+  const totalShares = data.trainees.reduce((s, t) => s + (t.shares || 0), 0);
+  const totalViewed = data.trainees.reduce((s, t) => s + (t.viewed || 0), 0);
+  const helpCount = data.joinRequests.length + data.failedUploads.length;
+  const viewedPct = totalShares ? Math.round((totalViewed / totalShares) * 100) : 0;
+  $("statTrainees").textContent = totalTrainees;
+  $("statShares").textContent = totalShares;
+  $("statViewed").textContent = totalShares ? `${viewedPct}%` : "—";
+  $("statHelp").textContent = helpCount;
+  $("navTraineeCount").textContent = totalTrainees;
+  $("navHelpCount").textContent = helpCount;
+
+  // טבלת החותמים: מכינים את הנתונים עם מפתחות מיון, ומרנדרים לשתי התצוגות
+  currentTrainees = data.trainees.map((t) => ({
+    ...t,
+    lastRecordingTs: t.lastRecording ? new Date(t.lastRecording).getTime() : 0,
+  }));
+  // ברירת מחדל: החדש ביותר קודם (sorted-desc על ההקלטה האחרונה)
+  currentTrainees.sort((a, b) => b.lastRecordingTs - a.lastRecordingTs);
+  $("traineeCard").hidden = false;
+  renderTraineeRows(currentTrainees);
+}
+
+// badge סטטוס לפי מצב החותם
+function statusTag(tr) {
+  if (!tr.lastRecording) return `<span class="tag tag-stuck">עוד לא צילם</span>`;
+  if ((tr.shares || 0) === 0) return `<span class="tag">צילם, לא שיתף</span>`;
+  return `<span class="tag tag-ok">פעיל</span>`;
+}
+function initials(name) {
+  const parts = (name || "").trim().split(/\s+/);
+  return ((parts[0] || "").charAt(0) + (parts[1] || "").charAt(0)) || "?";
+}
+
+function renderTraineeRows(list) {
+  const filtered = applySearch(list);
+  // דסקטופ
   const rows = $("traineeRows");
   rows.innerHTML = "";
-  $("traineeTable").classList.remove("hidden");
-  const sorted = [...data.trainees].sort((a, b) =>
-    (a.full_name || "").localeCompare(b.full_name || "", "he")
-  );
-  for (const tr of sorted) {
+  for (const tr of filtered) {
     const row = document.createElement("tr");
-    const stuck = !tr.lastRecording;
-    if (stuck) row.className = "flagged";
-    const cells = [
-      tr.full_name,
-      tr.lastRecording ? humanDate(tr.lastRecording) : "עוד לא צילם",
-      String(tr.shares),
-      String(tr.viewed),
-    ];
-    for (const c of cells) {
-      const td = document.createElement("td");
-      td.textContent = c;
-      row.appendChild(td);
-    }
+    if (!tr.lastRecording) row.className = "flagged";
+    row.innerHTML =
+      `<td><div class="cell-name"><span class="avatar">${initials(tr.full_name)}</span><span class="n">${esc(tr.full_name)}</span></div></td>` +
+      `<td>${tr.lastRecording ? esc(humanDate(tr.lastRecording)) : "עוד לא צילם"}</td>` +
+      `<td class="cell-num">${tr.shares || 0}</td>` +
+      `<td class="cell-num">${tr.viewed || 0}</td>` +
+      `<td>${statusTag(tr)}</td>`;
     rows.appendChild(row);
   }
+  // מובייל
+  const cards = $("traineeCards");
+  cards.innerHTML = "";
+  for (const tr of filtered) {
+    const card = document.createElement("div");
+    card.className = "trow-card" + (tr.lastRecording ? "" : " flagged");
+    card.innerHTML =
+      `<div class="tc-head"><span class="avatar">${initials(tr.full_name)}</span><span class="tc-name">${esc(tr.full_name)}</span>${statusTag(tr)}</div>` +
+      `<div class="tc-grid">` +
+      `<div class="tc-field"><span class="k">הקלטה אחרונה</span><span class="v">${tr.lastRecording ? esc(humanDate(tr.lastRecording)) : "—"}</span></div>` +
+      `<div class="tc-field"><span class="k">שיתופים</span><span class="v">${tr.shares || 0}</span></div>` +
+      `<div class="tc-field"><span class="k">נצפו</span><span class="v">${tr.viewed || 0}</span></div>` +
+      `</div>`;
+    cards.appendChild(card);
+  }
+}
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"]/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])
+  );
+}
+
+function applySearch(list) {
+  const q = ($("traineeSearch").value || "").trim().toLowerCase();
+  if (!q) return list;
+  return list.filter(
+    (t) => (t.full_name || "").toLowerCase().includes(q) || (t.email || "").toLowerCase().includes(q)
+  );
 }
 
 // ---------- טעינת CSV ----------
@@ -203,6 +276,7 @@ function wireCsv() {
       show($("csvPreview"), false);
       $("csvBox").value = "";
       await renderOverview();
+      setTimeout(closePanel, 1400);
     } catch (e) {
       $("csvError").textContent = "הטעינה נכשלה: " + (e.message || e) + ". שום דבר חלקי לא נשמר בלי בדיקה, מנסים שוב.";
       show($("csvError"), true);
@@ -236,6 +310,7 @@ function wireManual() {
       show($("manualDone"), true);
       $("manualForm").reset();
       await renderOverview();
+      setTimeout(closePanel, 1400);
     } catch (err) {
       $("manualError").textContent = "השיבוץ לא נשמר: " + (err.message || err);
       show($("manualError"), true);
@@ -243,8 +318,150 @@ function wireManual() {
   });
 }
 
+// ---------- ניהול תפקידים ----------
+
+const ROLE_LABEL = { trainee: "חותם", mentor: "מנטור", admin: "אדמין" };
+const ROLE_TAG = { trainee: "tag", mentor: "tag tag-ok", admin: "badge-new" };
+
+async function renderRoster() {
+  show($("rosterError"), false);
+  $("rosterLoading").classList.remove("hidden");
+  $("rosterCard").hidden = true;
+  let roster;
+  try {
+    roster = await listRoster();
+  } catch (e) {
+    $("rosterLoading").classList.add("hidden");
+    show($("rosterError"), true);
+    return;
+  }
+  $("rosterLoading").classList.add("hidden");
+  roster.sort(
+    (a, b) =>
+      (a.role || "").localeCompare(b.role || "") ||
+      (a.full_name || "").localeCompare(b.full_name || "", "he")
+  );
+  $("rosterCard").hidden = false;
+
+  // דסקטופ
+  const rows = $("rosterRows");
+  rows.innerHTML = "";
+  for (const p of roster) {
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      `<td style="direction:ltr; text-align:right">${esc(p.email)}</td>` +
+      `<td>${esc(p.full_name || "")}</td>` +
+      `<td></td><td style="text-align:left"></td>`;
+    tr.children[2].appendChild(roleSelect(p));
+    tr.children[3].appendChild(removeBtn(p));
+    rows.appendChild(tr);
+  }
+
+  // מובייל
+  const cards = $("rosterCards");
+  cards.innerHTML = "";
+  for (const p of roster) {
+    const card = document.createElement("div");
+    card.className = "trow-card";
+    const head = document.createElement("div");
+    head.className = "tc-head";
+    head.innerHTML = `<span class="tc-name">${esc(p.full_name || p.email)}</span><span class="${ROLE_TAG[p.role] || "tag"}" style="margin-inline-start:auto">${ROLE_LABEL[p.role] || p.role}</span>`;
+    const grid = document.createElement("div");
+    grid.className = "tc-grid";
+    const f1 = document.createElement("div");
+    f1.className = "tc-field";
+    f1.innerHTML = `<span class="k">מייל</span><span class="v" style="direction:ltr">${esc(p.email)}</span>`;
+    const f2 = document.createElement("div");
+    f2.className = "tc-field";
+    f2.innerHTML = `<span class="k">תפקיד</span>`;
+    f2.appendChild(roleSelect(p));
+    grid.append(f1, f2);
+    card.append(head, grid, removeBtn(p, true));
+    cards.appendChild(card);
+  }
+}
+
+function roleSelect(p) {
+  const sel = document.createElement("select");
+  sel.style.margin = "0";
+  sel.style.minHeight = "38px";
+  for (const r of ["trainee", "mentor", "admin"]) {
+    const o = document.createElement("option");
+    o.value = r;
+    o.textContent = ROLE_LABEL[r];
+    if (p.role === r) o.selected = true;
+    sel.appendChild(o);
+  }
+  sel.addEventListener("change", async () => {
+    sel.disabled = true;
+    try {
+      await upsertPerson({ email: p.email, full_name: p.full_name, role: sel.value });
+      p.role = sel.value;
+    } catch (e) {
+      sel.value = p.role;
+      alert("העדכון לא נשמר: " + (e.message || e));
+    }
+    sel.disabled = false;
+  });
+  return sel;
+}
+
+function removeBtn(p, block) {
+  const btn = document.createElement("button");
+  btn.className = "row-action";
+  btn.textContent = "להסיר";
+  btn.style.color = "var(--adom)";
+  if (block) { btn.style.marginTop = "10px"; }
+  btn.addEventListener("click", async () => {
+    if (!confirm(`להסיר את ${p.full_name || p.email} מהרשימה?`)) return;
+    btn.disabled = true;
+    try {
+      await removeFromRoster(p.email);
+      await renderRoster();
+    } catch (e) {
+      btn.disabled = false;
+      alert("ההסרה נכשלה: " + (e.message || e));
+    }
+  });
+  return btn;
+}
+
+function wireRoles() {
+  $("roleForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    show($("roleDone"), false);
+    show($("roleError"), false);
+    const email = $("roleEmail").value.trim().toLowerCase();
+    const full_name = $("roleName").value.trim();
+    const role = $("roleSelect").value;
+    try {
+      await upsertPerson({ email, full_name, role });
+      $("roleDone").textContent = `${full_name || email} נשמר כ${ROLE_LABEL[role]}.`;
+      show($("roleDone"), true);
+      $("roleForm").reset();
+      await renderRoster();
+    } catch (err) {
+      $("roleError").textContent = "השמירה נכשלה: " + (err.message || err);
+      show($("roleError"), true);
+    }
+  });
+  // טעינת הרשימה בפתיחת הפאנל
+  document
+    .querySelectorAll('[onclick="openPanel(\'rolesPanel\')"]')
+    .forEach((el) => el.addEventListener("click", renderRoster));
+}
+
 $("loginBtn").addEventListener("click", signInWithGoogle);
 $("tableRetry").addEventListener("click", renderOverview);
+$("traineeSearch").addEventListener("input", () => renderTraineeRows(currentTrainees));
+wireSort(
+  $("traineeTable"),
+  () => currentTrainees,
+  (sorted) => {
+    currentTrainees = sorted;
+    renderTraineeRows(currentTrainees);
+  }
+);
 if (!DEV) {
   supabase.auth.onAuthStateChange((event) => {
     if (event === "SIGNED_IN" && document.querySelector("#screen-login.active")) {
@@ -254,4 +471,5 @@ if (!DEV) {
 }
 wireCsv();
 wireManual();
+wireRoles();
 boot();

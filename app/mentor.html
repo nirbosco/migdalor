@@ -6,14 +6,20 @@
 <title>המגדלור: כל החותמים שלי</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="brand.css">
+<link rel="stylesheet" href="brand-dashboard.css">
+<style>
+  .app-shell > .topbar, .app-shell > .dash-main { min-width: 0; }
+  .topbar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dash-section-head .cell-name h2 { margin: 0; }
+</style>
 </head>
 <body>
 
 <div class="dev-banner">מצב תצוגה: נתוני הדגמה בלבד, שום דבר לא נשלח לשרת</div>
 <div class="offline-bar">אין אינטרנט כרגע. הרשימה תתעדכן כשיחזור החיבור.</div>
 
+<!-- מסכי כניסה: פשוטים וממורכזים -->
 <section id="screen-boot" class="screen active">
   <h1>המגדלור</h1>
   <p class="small mt">רק רגע...</p>
@@ -29,21 +35,49 @@
   <button id="loginBtn" class="btn-primary">כניסה עם Google</button>
 </section>
 
+<!-- ===== משטח המנטור: shell ===== -->
 <section id="screen-list" class="screen">
-  <h1 id="mentorGreeting">כל החותמים שלי</h1>
-  <p class="small">שיעורים ששותפו איתך, מהחדש לישן. "חדש" מסמן שיעור שעוד לא צפית בו.</p>
-  <div id="listLoading">
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon"><svg><use href="#i-telescope"/></svg></span>
+        <span class="name">המגדלור</span>
+      </div>
+      <a class="nav-item active"><span class="ico"><svg><use href="#i-eye"/></svg></span>מה ששותף איתי<span class="count" id="navShareCount">0</span></a>
+      <div class="sidebar-foot">
+        <a href="index.html" class="nav-item" id="backHomeLink"><span class="ico"><svg><use href="#i-lighthouse"/></svg></span>למגדלור</a>
+      </div>
+    </aside>
+
+    <header class="topbar">
+      <button class="shell-burger" aria-label="תפריט">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div class="topbar-title" id="mentorGreeting">כל החותמים שלי</div>
+      <div class="topbar-spacer"></div>
+      <div class="topbar-actions">
+        <div class="topbar-user"><span class="avatar" id="mentorAvatar">מ</span></div>
+      </div>
+    </header>
+
+    <main class="dash-main">
+      <p class="small" style="margin-bottom:14px">שיעורים ששותפו איתך, מהחדש לישן, מקובצים לפי חותם. "חדש" מסמן שיעור שעוד לא צפית בו.</p>
+      <div id="listLoading">
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+      </div>
+      <div id="listError" class="notice hidden">
+        לא הצלחנו להביא את הרשימה, זו רק בעיית תקשורת רגעית.
+        <button id="listRetry" class="btn-secondary">לנסות שוב</button>
+      </div>
+      <div id="listEmpty" class="hidden">
+        <p class="mt">עוד לא שותפו איתך שיעורים. כשחותם ישתף איתך שיעור, הוא יופיע כאן.</p>
+      </div>
+      <div id="groups"></div>
+    </main>
+
+    <div class="shell-scrim"></div>
   </div>
-  <div id="listError" class="notice hidden">
-    לא הצלחנו להביא את הרשימה, זו רק בעיית תקשורת רגעית.
-    <button id="listRetry" class="btn-secondary">לנסות שוב</button>
-  </div>
-  <div id="listEmpty" class="hidden">
-    <p class="mt">עוד לא שותפו איתך שיעורים. כשחותם ישתף איתך שיעור, הוא יופיע כאן.</p>
-  </div>
-  <div id="groups"></div>
 </section>
 
 <script type="module" src="js/mentor.js"></script>

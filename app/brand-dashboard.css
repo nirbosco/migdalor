@@ -1,0 +1,388 @@
+/* ============================================================
+   המגדלור: שכבת המשטחים הדשבורדיים (Monday / Drive)
+   מעצב/ת המוצר | רברנד 8.7.2026
+   נגזר מספר המותג הרשמי של חותם. משתמשת בטוקנים מ-brand.css.
+   נטענת אחרי brand.css, ורק בעמודים דשבורדיים (dashboard, admin).
+
+   זו "השפה הבוגרת": app shell עם סרגל צד (דסקטופ) שמתקפל למובייל,
+   פס עליון, טבלת נתונים אמיתית עם גרסת מובייל של שורות-כרטיס,
+   רצועת stat cards, badges עדינים, ופאנל צד לפעולות.
+
+   רספונסיביות אמיתית: דסקטופ מנצל רוחב (סרגל + טבלה רחבה),
+   מובייל מקפל לעמודה. נקודות שבירה: 900px (shell), 720px (טבלה).
+
+   ה-<body> של עמוד דשבורדי מקבל class="dash". זה מבטל את מגבלת
+   הרוחב 640px של זרימת החותם ופותח את ה-shell לרוחב מלא.
+   ============================================================ */
+
+/* ---- שחרור הרוחב למשטח דשבורדי ---- */
+body.dash {
+  max-width: none;
+  padding: 0;
+  background: var(--reka);
+}
+
+/* ============================================================
+   1. APP SHELL
+   ============================================================ */
+.app-shell {
+  display: grid;
+  grid-template-columns: 248px 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "sidebar topbar"
+    "sidebar main";
+  min-height: 100vh;
+}
+
+/* ---- פס עליון ---- */
+.topbar {
+  grid-area: topbar;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 64px;
+  padding: 0 24px;
+  background: var(--lavan);
+  border-bottom: var(--kav);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.topbar-title { font-size: 20px; font-weight: 600; color: var(--deyo); }
+.topbar-title .sub { font-size: 15px; font-weight: 400; color: var(--afor); margin-inline-start: 8px; }
+.topbar-spacer { flex: 1; }
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+/* כפתור המבורגר: מופיע רק במובייל */
+.shell-burger {
+  display: none;
+  width: 44px; height: 44px;
+  align-items: center; justify-content: center;
+  border: var(--kav);
+  border-radius: var(--radius-katan);
+  background: var(--lavan);
+  color: var(--kachol);
+}
+.shell-burger svg { width: 22px; height: 22px; }
+
+/* אווטאר משתמש בפס העליון */
+.topbar-user {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 15px; color: var(--afor);
+}
+.topbar-user .avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #eef3ff; color: var(--kachol);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 15px; flex: none;
+}
+
+/* ---- סרגל צד ---- */
+.sidebar {
+  grid-area: sidebar;
+  background: var(--lavan);
+  border-inline-end: var(--kav);
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 30;
+}
+.sidebar-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 10px 16px;
+  margin-bottom: 6px;
+  border-bottom: var(--kav);
+}
+.sidebar-brand .brand-icon { width: 30px; height: 30px; color: var(--kachol); flex: none; }
+.sidebar-brand .brand-icon svg { width: 100%; height: 100%; fill: currentColor; display: block; }
+.sidebar-brand .name { font-size: 19px; font-weight: 800; color: var(--kachol); letter-spacing: -.01em; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px;
+  border-radius: var(--radius-katan);
+  color: var(--afor);
+  font-size: 17px; font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .12s ease, color .12s ease;
+}
+.nav-item .ico { width: 22px; height: 22px; flex: none; }
+.nav-item .ico svg { width: 100%; height: 100%; fill: currentColor; display: block; }
+.nav-item:hover { background: #f5f8ff; color: var(--kachol); }
+.nav-item.active { background: #eef3ff; color: var(--kachol); font-weight: 600; }
+.nav-item .count {
+  margin-inline-start: auto;
+  font-size: 13px; font-weight: 600;
+  background: var(--reka-alt); color: var(--afor);
+  border-radius: var(--pill); padding: 1px 9px;
+}
+.nav-item.active .count { background: var(--kachol); color: var(--lavan); }
+.sidebar-foot { margin-top: auto; padding-top: 12px; border-top: var(--kav); }
+
+/* גב חצי-שקוף שסוגר את הסרגל במובייל */
+.shell-scrim {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(10,19,48,.4);
+  z-index: 25;
+}
+
+/* ---- אזור התוכן הראשי ---- */
+.dash-main {
+  grid-area: main;
+  padding: 24px;
+  max-width: 1400px;
+  width: 100%;
+}
+.dash-section { margin-bottom: 28px; }
+.dash-section-head {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 14px;
+}
+.dash-section-head h2 { font-size: 20px; font-weight: 600; margin: 0; }
+.dash-section-head .spacer { flex: 1; }
+
+/* ============================================================
+   2. STAT CARDS — רצועת סיכום
+   ============================================================ */
+.stat-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--lavan);
+  border: var(--kav);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--tsel-rakh);
+}
+.stat-card .stat-label {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 15px; color: var(--afor); font-weight: 500;
+}
+.stat-card .stat-label .ico { width: 18px; height: 18px; color: var(--kachol); }
+.stat-card .stat-label .ico svg { width: 100%; height: 100%; fill: currentColor; display: block; }
+.stat-card .stat-value {
+  font-size: 34px; font-weight: 800; color: var(--deyo);
+  line-height: 1.1; margin-top: 8px; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+.stat-card .stat-delta { font-size: 14px; margin-top: 4px; color: var(--afor); }
+.stat-card .stat-delta.up { color: var(--ok); }
+.stat-card.accent { border-color: var(--kachol); }
+.stat-card.accent .stat-value { color: var(--kachol); }
+
+/* ============================================================
+   3. טבלת נתונים — דסקטופ
+   .table-card עוטף toolbar + .dtable-scroll (טבלה) + .table-cards (מובייל)
+   ============================================================ */
+.table-card {
+  background: var(--lavan);
+  border: var(--kav);
+  border-radius: var(--radius);
+  box-shadow: var(--tsel-rakh);
+  overflow: hidden;
+}
+.table-toolbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px;
+  border-bottom: var(--kav);
+  flex-wrap: wrap;
+}
+.table-toolbar .search {
+  flex: 1; min-width: 180px;
+  position: relative;
+}
+.table-toolbar .search input {
+  min-height: 42px; margin-top: 0;
+  padding-inline-start: 42px;
+  font-size: 16px;
+}
+.table-toolbar .search .ico {
+  position: absolute; inset-inline-start: 13px; top: 50%;
+  transform: translateY(-50%);
+  width: 18px; height: 18px; color: var(--afor);
+  pointer-events: none;
+}
+.table-toolbar .search .ico svg { width: 100%; height: 100%; fill: currentColor; display: block; }
+
+.dtable-scroll { overflow-x: auto; }
+.dtable {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 16px;
+}
+.dtable thead th {
+  background: var(--lavan);
+  color: var(--afor);
+  font-weight: 600;
+  font-size: 14px;
+  text-align: right;
+  padding: 12px 18px;
+  border-bottom: 1.5px solid var(--afor-kav);
+  white-space: nowrap;
+  position: sticky; top: 0;
+}
+/* כותרת ניתנת למיון: חץ ויזואלי */
+.dtable th.sortable { cursor: pointer; user-select: none; }
+.dtable th.sortable:hover { color: var(--kachol); }
+.dtable th.sortable .sort-ico {
+  display: inline-block; margin-inline-start: 6px;
+  opacity: .4; font-size: 12px;
+}
+.dtable th.sorted-asc .sort-ico,
+.dtable th.sorted-desc .sort-ico { opacity: 1; color: var(--kachol); }
+.dtable th.sorted-desc .sort-ico { transform: rotate(180deg); }
+
+.dtable tbody td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--reka);
+  color: var(--deyo);
+  vertical-align: middle;
+}
+.dtable tbody tr:last-child td { border-bottom: none; }
+.dtable tbody tr { transition: background .1s ease; }
+.dtable tbody tr:hover td { background: #f5f8ff; }
+.dtable tbody tr.flagged td { background: var(--azhara-rakh); }
+.dtable tbody tr.flagged:hover td { background: #f8ead2; }
+
+/* תא שם עם אווטאר */
+.cell-name { display: flex; align-items: center; gap: 12px; }
+.cell-name .avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: #eef3ff; color: var(--kachol);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 14px; flex: none;
+}
+.cell-name .n { font-weight: 500; }
+.cell-num { font-variant-numeric: tabular-nums; }
+
+/* פעולת שורה */
+.row-action {
+  background: transparent; border: none;
+  color: var(--kachol); font-size: 15px; font-weight: 500;
+  cursor: pointer; padding: 4px 8px; border-radius: 8px;
+}
+.row-action:hover { background: #eef3ff; }
+
+/* ============================================================
+   4. טבלה כשורות-כרטיס — מובייל
+   אותו מידע. מוצג רק מתחת ל-720px.
+   ============================================================ */
+.table-cards { display: none; padding: 12px; }
+.trow-card {
+  background: var(--lavan);
+  border: var(--kav);
+  border-radius: var(--radius-katan);
+  padding: 14px 16px;
+  margin-top: 12px;
+  box-shadow: var(--tsel-rakh);
+}
+.trow-card:first-child { margin-top: 0; }
+.trow-card.flagged { border-inline-start: 4px solid var(--azhara); }
+.trow-card .tc-head {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 10px;
+}
+.trow-card .tc-head .avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: #eef3ff; color: var(--kachol);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 15px; flex: none;
+}
+.trow-card .tc-name { font-size: 18px; font-weight: 600; }
+.trow-card .tc-head .tag { margin-inline-start: auto; }
+.trow-card .tc-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px;
+}
+.trow-card .tc-field { font-size: 15px; }
+.trow-card .tc-field .k { color: var(--afor); font-size: 13px; display: block; }
+.trow-card .tc-field .v { font-weight: 500; font-variant-numeric: tabular-nums; }
+
+/* ============================================================
+   5. PANEL — פאנל צד / מודל לפעולות
+   ============================================================ */
+.side-panel {
+  position: fixed; top: 0; inset-inline-end: 0;
+  width: min(440px, 92vw); height: 100vh;
+  background: var(--lavan);
+  border-inline-start: var(--kav);
+  box-shadow: -8px 0 30px rgba(10,19,48,.12);
+  z-index: 60;
+  display: flex; flex-direction: column;
+  transform: translateX(100%);      /* מוסתר */
+  transition: transform .22s ease;
+}
+[dir="rtl"] .side-panel { transform: translateX(-100%); }
+.side-panel.open { transform: translateX(0); }
+.side-panel-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 18px 20px; border-bottom: var(--kav);
+}
+.side-panel-head h3 { font-size: 19px; font-weight: 600; margin: 0; flex: 1; }
+.side-panel-close {
+  width: 38px; height: 38px; border-radius: var(--radius-katan);
+  border: var(--kav); background: var(--lavan); color: var(--afor);
+  font-size: 22px; line-height: 1; cursor: pointer;
+}
+.side-panel-close:hover { color: var(--kachol); background: #f5f8ff; }
+.side-panel-body { padding: 20px; overflow-y: auto; flex: 1; }
+.side-panel-foot {
+  padding: 16px 20px; border-top: var(--kav);
+  display: flex; gap: 10px;
+}
+.side-panel-foot .btn-primary,
+.side-panel-foot .btn-secondary { margin-top: 0; }
+.panel-scrim {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(10,19,48,.4);
+  z-index: 55;
+}
+.panel-scrim.open { display: block; }
+
+/* ============================================================
+   6. רספונסיביות
+   ============================================================ */
+
+/* טאבלט ומטה: הסרגל הופך למגירה נשלפת */
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-areas: "topbar" "main";
+  }
+  .shell-burger { display: flex; }
+  .sidebar {
+    position: fixed; top: 0; inset-inline-end: 0;
+    width: min(280px, 84vw); height: 100vh;
+    transform: translateX(100%);
+    transition: transform .22s ease;
+  }
+  [dir="rtl"] .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .app-shell.nav-open .shell-scrim { display: block; }
+}
+
+/* מובייל: טבלה -> שורות-כרטיס, ריפוד קטן יותר */
+@media (max-width: 720px) {
+  .dash-main { padding: 16px; }
+  .dtable-scroll { display: none; }
+  .table-cards { display: block; }
+  .table-toolbar { padding: 12px; }
+  .stat-strip { grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat-card { padding: 14px 16px; }
+  .stat-card .stat-value { font-size: 28px; }
+}
+
+@media (max-width: 400px) {
+  .stat-strip { grid-template-columns: 1fr; }
+}

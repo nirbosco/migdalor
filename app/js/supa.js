@@ -490,6 +490,56 @@ export async function upsertRosterRows(rows) {
   if (error) throw error;
 }
 
+// ---------- ניהול תפקידים (אדמין) ----------
+
+const DEV_ROSTER = [
+  { email: "moshe.demo@example.com", full_name: "משה (הדגמה)", role: "trainee" },
+  { email: "sara.demo@example.com", full_name: "שרה (הדגמה)", role: "trainee" },
+  { email: "ehud.demo@example.com", full_name: "אהוד (הדגמה)", role: "mentor" },
+  { email: "nir.demo@example.com", full_name: "ניר (הדגמה)", role: "admin" },
+];
+
+// כל הרשומות ב-roster, ממוין לפי תפקיד ואז שם. לאדמין בלבד (roster_select).
+export async function listRoster() {
+  if (DEV) return [...DEV_ROSTER];
+  const { data, error } = await supabase
+    .from("migdalor_roster")
+    .select("email,full_name,role");
+  if (error) throw error;
+  return data || [];
+}
+
+// הוספה/עדכון של אדם עם תפקיד:
+// 1. upsert ל-roster (email מפתח, on conflict מעדכן role+full_name).
+// 2. אם כבר קיים פרופיל למייל הזה, מעדכן גם את migdalor_profiles.role,
+//    כדי שאדם קיים יקבל את התפקיד החדש מיד ולא רק בהרשמה הבאה.
+export async function upsertPerson({ email, full_name, role }) {
+  if (DEV) return;
+  const e = (email || "").trim().toLowerCase();
+  const { error } = await supabase
+    .from("migdalor_roster")
+    .upsert({ email: e, full_name: (full_name || "").trim(), role }, { onConflict: "email" });
+  if (error) throw error;
+  // עדכון הפרופיל הקיים, אם יש (לא חובה שיצליח: אולי עוד לא נרשם)
+  const { data: prof } = await supabase
+    .from("migdalor_profiles")
+    .select("id")
+    .eq("email", e)
+    .maybeSingle();
+  if (prof && prof.id) {
+    await supabase.from("migdalor_profiles").update({ role }).eq("id", prof.id);
+  }
+}
+
+export async function removeFromRoster(email) {
+  if (DEV) return;
+  const { error } = await supabase
+    .from("migdalor_roster")
+    .delete()
+    .eq("email", (email || "").trim().toLowerCase());
+  if (error) throw error;
+}
+
 export async function addAssignments(rows) {
   if (DEV) return;
   // אין אילוץ ייחודיות בטבלה, ולכן בודקים כפילויות לפני הכנסה.

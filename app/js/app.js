@@ -21,7 +21,7 @@ import {
 import {
   $,
   show,
-  goScreen,
+  goScreen as _goScreen,
   defaultLessonName,
   humanDate,
   humanMinutes,
@@ -34,6 +34,14 @@ import {
 import { createRecorder, findLeftoverRecording, assembleLeftover } from "./recorder.js";
 import { createUploader, getUploadState } from "./upload.js";
 import { saveUploadState, saveUploadBlob, estimateSpaceMinutes } from "./store.js";
+import { initDashShell } from "./dash-shell.js";
+
+// עטיפה ל-goScreen: מסך הבית מקבל דשבורד רחב (home-dash), שאר מסכי
+// הזרימה החמה נשארים בעמודה הצרה. כך הבית "דשבורדי" בלי לגעת בהקלטה.
+function goScreen(id) {
+  document.body.classList.toggle("home-dash", id === "screen-home");
+  _goScreen(id);
+}
 
 let profile = null;
 let mentors = [];
@@ -56,6 +64,7 @@ const humanContact = () =>
 
 async function boot() {
   if (DEV) document.body.classList.add("dev");
+  initDashShell();
   watchOnline();
 
   if (isInAppBrowser()) {
@@ -128,10 +137,29 @@ async function showHome() {
   await Promise.all([renderPendingUpload(), renderLessons()]);
 }
 
+// טקסט + סוג badge לפי מצב השיעור
+function lessonStatus(l) {
+  if (l.status === "failed")
+    return { text: "העלאה נכשלה", full:
+      `משהו השתבש בהעלאה, אבל הסרטון עצמו שמור אצלך ובטוח. הודענו לצוות, ` +
+      `ו${CONTACT_NAME} יחזור אליך לעזור. ` + humanContact(), cls: "tag tag-stuck" };
+  if (l.status === "uploading")
+    return { text: "ממתין להעלאה", full: "ממתין להשלמת ההעלאה.", cls: "tag" };
+  if (l.viewedBy.length)
+    return { text: "נצפה", full: `נשלח ל${joinNames(l.sharedWith)}, נצפה`, cls: "tag tag-ok" };
+  if (l.sharedWith.length)
+    return { text: "שותף", full: `נשלח ל${joinNames(l.sharedWith)}`, cls: "tag" };
+  return { text: "לא שותף", full: "עדיין לא שותף", cls: "tag" };
+}
+
 async function renderLessons() {
   show($("lessonsError"), false);
   show($("lessonsEmpty"), false);
+  $("lessonsCard").hidden = true;
+  show($("homeStats"), false);
+  $("homeStats").hidden = true;
   $("lessonsList").innerHTML = "";
+  $("lessonsCards").innerHTML = "";
   $("lessonsLoading").classList.remove("hidden");
   let lessons;
   try {
@@ -146,40 +174,72 @@ async function renderLessons() {
     show($("lessonsEmpty"), true);
     return;
   }
+
+  // רצועת סיכום קצרה
+  const shared = lessons.filter((l) => l.sharedWith && l.sharedWith.length).length;
+  const viewed = lessons.filter((l) => l.viewedBy && l.viewedBy.length).length;
+  $("homeStatLessons").textContent = lessons.length;
+  $("homeStatShared").textContent = shared;
+  $("homeStatViewed").textContent = viewed;
+  $("homeStats").hidden = false;
+  show($("homeStats"), true);
+
+  $("lessonsCard").hidden = false;
   for (const l of lessons) {
+    const st = lessonStatus(l);
+    const title = l.title || "שיעור ללא שם";
+    const ready = l.status === "ready";
+    const open = () => { if (ready) openShareMode(l); };
+
+    // שורת טבלה (דסקטופ)
+    const tr = document.createElement("tr");
+    const tdTitle = document.createElement("td");
+    tdTitle.className = "lesson-title-cell";
+    tdTitle.textContent = title;
+    const tdDate = document.createElement("td");
+    tdDate.textContent = humanDate(l.created_at);
+    const tdDur = document.createElement("td");
+    tdDur.textContent = humanMinutes(l.duration_s);
+    const tdStatus = document.createElement("td");
+    tdStatus.innerHTML = `<span class="${st.cls}">${st.text}</span>`;
+    const tdAction = document.createElement("td");
+    if (ready) tdAction.innerHTML = `<button class="row-action">שיתוף</button>`;
+    tr.append(tdTitle, tdDate, tdDur, tdStatus, tdAction);
+    if (ready) { tr.style.cursor = "pointer"; tr.addEventListener("click", open); }
+    else tr.style.cursor = "default";
+    $("lessonsList").appendChild(tr);
+
+    // כרטיס (מובייל)
     const card = document.createElement("div");
-    card.className = "card";
-    const title = document.createElement("div");
-    title.className = "title";
-    title.textContent = l.title || "שיעור ללא שם";
-    const meta = document.createElement("div");
-    meta.className = "meta";
-    meta.textContent = `${humanDate(l.created_at)} | ${humanMinutes(l.duration_s)}`;
-    const status = document.createElement("div");
-    status.className = "status";
-    card.append(title, meta, status);
-
-    if (l.status === "failed") {
-      status.textContent =
-        `משהו השתבש בהעלאה, אבל הסרטון עצמו שמור אצלך ובטוח. הודענו לצוות, ` +
-        `ו${CONTACT_NAME} יחזור אליך לעזור. ` +
-        humanContact();
-    } else if (l.status === "uploading") {
-      status.textContent = "ממתין להשלמת ההעלאה.";
-    } else if (l.viewedBy.length) {
-      status.textContent = `נשלח ל${joinNames(l.sharedWith)}, נצפה`;
-      status.classList.add("viewed");
-    } else if (l.sharedWith.length) {
-      status.textContent = `נשלח ל${joinNames(l.sharedWith)}`;
-    } else {
-      status.textContent = "עדיין לא שותף";
+    card.className = "trow-card";
+    const head = document.createElement("div");
+    head.className = "tc-head";
+    const nm = document.createElement("span");
+    nm.className = "tc-name";
+    nm.textContent = title;
+    const tag = document.createElement("span");
+    tag.className = st.cls;
+    tag.style.marginInlineStart = "auto";
+    tag.textContent = st.text;
+    head.append(nm, tag);
+    const grid = document.createElement("div");
+    grid.className = "tc-grid";
+    grid.innerHTML =
+      `<div class="tc-field"><span class="k">תאריך</span><span class="v"></span></div>` +
+      `<div class="tc-field"><span class="k">משך</span><span class="v"></span></div>`;
+    grid.querySelectorAll(".v")[0].textContent = humanDate(l.created_at);
+    grid.querySelectorAll(".v")[1].textContent = humanMinutes(l.duration_s);
+    card.append(head, grid);
+    if (l.status !== "ready" || st.text !== "לא שותף") {
+      const note = document.createElement("div");
+      note.className = "status";
+      note.style.marginTop = "8px";
+      note.textContent = st.full;
+      if (l.viewedBy.length) note.classList.add("viewed");
+      card.appendChild(note);
     }
-
-    if (l.status === "ready") {
-      card.style.cursor = "pointer";
-      card.addEventListener("click", () => openShareMode(l));
-    }
-    $("lessonsList").appendChild(card);
+    if (ready) { card.style.cursor = "pointer"; card.addEventListener("click", open); }
+    $("lessonsCards").appendChild(card);
   }
 }
 
