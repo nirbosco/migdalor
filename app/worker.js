@@ -120,6 +120,23 @@ async function checkViewAccess(env, token, user, jwt) {
   return { ok: true, recording };
 }
 
+// הרשאת בעלים: החותם צופה בהקלטה של עצמו, גם לפני שיתוף (בלי טוקן).
+// ה-RLS על migdalor_recordings מחזיר שורה רק לבעלים או לאדמין, ולכן
+// עצם קבלת השורה עם ה-JWT של המשתמש היא בדיקת ההרשאה.
+async function checkOwnerAccess(env, recordingId, user, jwt) {
+  if (!user || !recordingId) return { ok: false };
+  const recs = await supa(
+    env,
+    `migdalor_recordings?id=eq.${recordingId}` +
+      `&select=id,owner_id,title,duration_s,mime,storage_key,status,created_at`,
+    { jwt }
+  );
+  if (!recs.length) return { ok: false, notFound: true };
+  const r = recs[0];
+  if (r.owner_id !== user.id) return { ok: false };
+  return { ok: true, recording: { ...r, owner_name: "" } };
+}
+
 // ---------- העלאה ----------
 
 function extFor(mime) {
@@ -203,10 +220,24 @@ async function handleStream(request, url, env, recordingId) {
     return access.notFound ? deny("השיעור לא נמצא", 404) : deny();
   }
   if (access.recording.id !== recordingId) return deny();
-  if (!access.recording.storage_key || access.recording.status !== "ready") {
+  return streamRecording(request, env, access.recording);
+}
+
+// בעלים מזרים את ההקלטה של עצמו, בלי טוקן שיתוף.
+async function handleOwnerStream(request, url, env, recordingId) {
+  const { user, jwt } = await getAuth(request, url, env);
+  if (!user) return deny("נדרשת כניסה", 401);
+  const access = await checkOwnerAccess(env, recordingId, user, jwt);
+  if (!access.ok) {
+    return access.notFound ? deny("השיעור לא נמצא", 404) : deny();
+  }
+  return streamRecording(request, env, access.recording);
+}
+
+async function streamRecording(request, env, recording) {
+  if (!recording.storage_key || recording.status !== "ready") {
     return deny("הסרטון עדיין עולה", 409);
   }
-
   const range = request.headers.get("range");
   let opts = {};
   if (range) {
@@ -219,7 +250,7 @@ async function handleStream(request, url, env, recordingId) {
       };
     }
   }
-  const obj = await env.BUCKET.get(access.recording.storage_key, opts);
+  const obj = await env.BUCKET.get(recording.storage_key, opts);
   if (!obj) return deny("השיעור לא נמצא", 404);
 
   const headers = new Headers();
@@ -260,6 +291,27 @@ async function handleMeta(request, url, env) {
   });
 }
 
+// פרטי ההקלטה לבעלים (לצפייה עצמית, בלי טוקן)
+async function handleOwnerMeta(request, url, env) {
+  const recordingId = url.searchParams.get("rec") || "";
+  const { user, jwt } = await getAuth(request, url, env);
+  if (!user) return deny("נדרשת כניסה", 401);
+  const access = await checkOwnerAccess(env, recordingId, user, jwt);
+  if (!access.ok) {
+    return access.notFound ? deny("השיעור לא נמצא", 404) : deny();
+  }
+  return json({
+    recordingId: access.recording.id,
+    title: access.recording.title,
+    ownerName: "",
+    durationS: access.recording.duration_s,
+    mime: access.recording.mime,
+    createdAt: access.recording.created_at,
+    status: access.recording.status,
+    owner: true,
+  });
+}
+
 async function handleViewed(request, url, env) {
   const { user, jwt } = await getAuth(request, url, env);
   if (!user) return deny("נדרשת כניסה", 401);
@@ -286,6 +338,14 @@ export default {
       const view = path.match(/^\/v\/([0-9a-f-]+)$/i);
       if (view && request.method === "GET") {
         return await handleStream(request, url, env, view[1]);
+      }
+      // צפייה עצמית של הבעלים (בלי טוקן שיתוף)
+      const mine = path.match(/^\/mine\/([0-9a-f-]+)$/i);
+      if (mine && request.method === "GET") {
+        return await handleOwnerStream(request, url, env, mine[1]);
+      }
+      if (path === "/mine-meta" && request.method === "GET") {
+        return await handleOwnerMeta(request, url, env);
       }
       if (path === "/meta" && request.method === "GET") {
         return await handleMeta(request, url, env);

@@ -5,7 +5,11 @@ import { DEV, devHref, WORKER_URL, CONTACT_NAME, CONTACT_PHONE } from "./config.
 import { supabase, getUser, getAccessToken, signInWithGoogle, getMyProfile } from "./supa.js";
 import { $, show, goScreen, humanDate, humanMinutes, atMinute, watchOnline } from "./ui.js";
 
-const token = new URLSearchParams(location.search).get("token") || "";
+const params = new URLSearchParams(location.search);
+const token = params.get("token") || "";
+const recId = params.get("rec") || "";
+// מצב בעלים: החותם צופה בהקלטה של עצמו, מזוהה לפי מזהה הקלטה ולא לפי טוקן שיתוף
+const ownerMode = !token && !!recId;
 let meta = null;
 let viewRegistered = false;
 
@@ -13,7 +17,7 @@ async function boot() {
   if (DEV) document.body.classList.add("dev");
   watchOnline();
 
-  if (!token) {
+  if (!token && !recId) {
     goScreen("screen-badlink");
     return;
   }
@@ -43,9 +47,12 @@ async function openLesson() {
   }
 
   const jwt = await getAccessToken();
+  const metaUrl = ownerMode
+    ? WORKER_URL + "/mine-meta?rec=" + encodeURIComponent(recId)
+    : WORKER_URL + "/meta?token=" + encodeURIComponent(token);
   let res;
   try {
-    res = await fetch(WORKER_URL + "/meta?token=" + encodeURIComponent(token), {
+    res = await fetch(metaUrl, {
       headers: { authorization: "Bearer " + jwt },
     });
   } catch (e) {
@@ -74,15 +81,27 @@ async function openLesson() {
     goScreen("screen-notready");
     return;
   }
-  const src =
-    WORKER_URL +
-    "/v/" +
-    encodeURIComponent(meta.recordingId) +
-    "?token=" +
-    encodeURIComponent(token) +
-    "&auth=" +
-    encodeURIComponent(jwt);
+  const src = ownerMode
+    ? WORKER_URL +
+      "/mine/" +
+      encodeURIComponent(meta.recordingId) +
+      "?auth=" +
+      encodeURIComponent(jwt)
+    : WORKER_URL +
+      "/v/" +
+      encodeURIComponent(meta.recordingId) +
+      "?token=" +
+      encodeURIComponent(token) +
+      "&auth=" +
+      encodeURIComponent(jwt);
   showPlayer(src);
+
+  if (ownerMode) {
+    // הבעלים צופה בעצמו: כפתור חזרה לדשבורד, בלי רישום "נצפה"
+    $("myTraineesBtn").textContent = "חזרה לשיעורים שלי";
+    show($("myTraineesBtn"), true);
+    return;
+  }
 
   // כפתור "כל החותמים שלי" למנטורים ואדמינים
   try {
@@ -121,7 +140,7 @@ function showPlayer(src) {
   });
 
   // זכירת נקודת עצירה
-  const posKey = "migdalor_pos_" + token;
+  const posKey = "migdalor_pos_" + (token || "rec_" + recId);
   const savedPos = parseFloat(localStorage.getItem(posKey) || "0");
   if (savedPos > 60) {
     $("resumeText").textContent = `הפסקת ${atMinute(savedPos)}, להמשיך משם?`;
@@ -147,7 +166,7 @@ function showPlayer(src) {
     const dt = v.currentTime - lastT;
     if (dt > 0 && dt < 2) watchedSeconds += dt;
     lastT = v.currentTime;
-    if (watchedSeconds > 30 && !viewRegistered) registerView();
+    if (!ownerMode && watchedSeconds > 30 && !viewRegistered) registerView();
   });
   v.addEventListener("ended", () => localStorage.removeItem(posKey));
 
@@ -164,7 +183,8 @@ function showPlayer(src) {
     }
   };
 
-  $("myTraineesBtn").onclick = () => (location.href = devHref("mentor.html"));
+  $("myTraineesBtn").onclick = () =>
+    (location.href = devHref(ownerMode ? "index.html" : "mentor.html"));
 
   v.addEventListener("error", () => {
     $("playerNote").textContent =

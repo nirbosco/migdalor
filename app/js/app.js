@@ -189,9 +189,10 @@ async function renderLessons() {
     const st = lessonStatus(l);
     const title = l.title || "שיעור ללא שם";
     const ready = l.status === "ready";
-    const open = () => { if (ready) openShareMode(l); };
+    const watch = () => { if (ready) watchLesson(l); };
+    const share = (e) => { if (e) e.stopPropagation(); if (ready) openShareMode(l); };
 
-    // שורת טבלה (דסקטופ)
+    // שורת טבלה (דסקטופ). לחיצה על השורה מנגנת את השיעור; כפתור נפרד לשיתוף.
     const tr = document.createElement("tr");
     const tdTitle = document.createElement("td");
     tdTitle.className = "lesson-title-cell";
@@ -203,9 +204,19 @@ async function renderLessons() {
     const tdStatus = document.createElement("td");
     tdStatus.innerHTML = `<span class="${st.cls}">${st.text}</span>`;
     const tdAction = document.createElement("td");
-    if (ready) tdAction.innerHTML = `<button class="row-action">שיתוף</button>`;
+    if (ready) {
+      const watchBtn = document.createElement("button");
+      watchBtn.className = "row-action";
+      watchBtn.textContent = "צפייה";
+      watchBtn.addEventListener("click", (e) => { e.stopPropagation(); watch(); });
+      const shareBtn = document.createElement("button");
+      shareBtn.className = "row-action row-action-ghost";
+      shareBtn.textContent = "שיתוף";
+      shareBtn.addEventListener("click", share);
+      tdAction.append(watchBtn, shareBtn);
+    }
     tr.append(tdTitle, tdDate, tdDur, tdStatus, tdAction);
-    if (ready) { tr.style.cursor = "pointer"; tr.addEventListener("click", open); }
+    if (ready) { tr.style.cursor = "pointer"; tr.addEventListener("click", watch); }
     else tr.style.cursor = "default";
     $("lessonsList").appendChild(tr);
 
@@ -238,9 +249,35 @@ async function renderLessons() {
       if (l.viewedBy.length) note.classList.add("viewed");
       card.appendChild(note);
     }
-    if (ready) { card.style.cursor = "pointer"; card.addEventListener("click", open); }
+    if (ready) {
+      const actions = document.createElement("div");
+      actions.className = "tc-actions";
+      const watchBtn = document.createElement("button");
+      watchBtn.className = "row-action";
+      watchBtn.textContent = "צפייה";
+      watchBtn.addEventListener("click", (e) => { e.stopPropagation(); watch(); });
+      const shareBtn = document.createElement("button");
+      shareBtn.className = "row-action row-action-ghost";
+      shareBtn.textContent = "שיתוף";
+      shareBtn.addEventListener("click", share);
+      actions.append(watchBtn, shareBtn);
+      card.appendChild(actions);
+      card.style.cursor = "pointer";
+      card.addEventListener("click", watch);
+    }
     $("lessonsCards").appendChild(card);
   }
+}
+
+// פתיחת נגן לצפייה עצמית של הבעלים בהקלטה שלו.
+// אם השיעור כבר שותף (יש טוקן), משתמשים בנתיב הטוקן הקיים — ה-can_view
+// כבר מתיר לבעלים, וצפיית הבעלים אינה נרשמת כ"נצפה". אם לא שותף, נתיב
+// הבעלים לפי מזהה ההקלטה (בלי טוקן).
+function watchLesson(l) {
+  const q = l.token
+    ? "watch.html?token=" + encodeURIComponent(l.token)
+    : "watch.html?rec=" + encodeURIComponent(l.id);
+  location.href = devHref(q);
 }
 
 // כרטיס העלאה ממתינה או שיעור ששרד קריסה

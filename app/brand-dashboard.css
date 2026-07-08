@@ -273,6 +273,19 @@ body.dash {
   cursor: pointer; padding: 4px 8px; border-radius: 8px;
 }
 .row-action:hover { background: #eef3ff; }
+/* כפתור פעולה ראשי מלא (צפייה) לצד כפתור-רפאים (שיתוף) */
+td .row-action:first-child, .tc-actions .row-action:first-child {
+  background: var(--kachol); color: #fff;
+}
+td .row-action:first-child:hover, .tc-actions .row-action:first-child:hover {
+  background: #0038cc;
+}
+.row-action-ghost { color: var(--kachol); }
+.tc-actions {
+  display: flex; gap: 8px; margin-top: 12px;
+}
+.tc-actions .row-action { flex: 1; text-align: center; padding: 9px 8px; }
+.tc-actions .row-action-ghost { border: var(--kav); }
 
 /* ============================================================
    4. טבלה כשורות-כרטיס — מובייל
