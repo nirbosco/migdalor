@@ -1,4 +1,4 @@
-// המגדלור: המסך של החותם. כניסה, בית, הכנה, הקלטה, העלאה ושיתוף.
+// חותמטק: המסך של החותם. כניסה, בית, הכנה, הקלטה, העלאה ושיתוף.
 // המסע הוא קו ישר: בית, צילום, סיום ושיתוף, בית. בלי ניווט, בלי תפריטים.
 
 import { DEV, devHref, CONTACT_NAME, CONTACT_PHONE, REC_TARGET } from "./config.js";
@@ -909,7 +909,7 @@ async function sendToMentors(emails) {
 
   const title = $("lessonTitle").value.trim() || current.title;
   const text =
-    `שלום ${joinNames(names)}, שיתפתי איתך שיעור חדש במגדלור: "${title}". ` +
+    `שלום ${joinNames(names)}, שיתפתי איתך שיעור חדש בחותמטק: "${title}". ` +
     `צופים כאן (נכנסים עם חשבון הגוגל שלך): ${watchUrl(token)}`;
   $("waLink").href = "https://wa.me/?text=" + encodeURIComponent(text);
   show($("waLink"), true);

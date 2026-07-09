@@ -1,4 +1,4 @@
-// המגדלור: קונפיגורציה מרכזית. זה הקובץ היחיד שנוגעים בו בפריסה.
+// חותמטק: קונפיגורציה מרכזית. זה הקובץ היחיד שנוגעים בו בפריסה.
 
 export const SUPABASE_URL = "https://ndrhiikczkbosentclnh.supabase.co";
 export const SUPABASE_ANON =
