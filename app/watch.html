@@ -73,8 +73,47 @@
   </div>
   <button id="speedBtn" class="btn-secondary">מהירות 1.5</button>
   <div id="playerNote" class="small mt"></div>
+
+  <!-- הניתוח החכם (פעימה 2). מוסתר כשהשירות לא מוגדר -->
+  <div id="aiSection" class="hidden">
+    <button id="aiBtn" class="btn-primary" style="margin-top:20px"></button>
+    <div id="aiStatus" class="small mt hidden"></div>
+    <div id="aiPanel" class="hidden"></div>
+  </div>
+
   <button id="myTraineesBtn" class="btn-quiet hidden">כל החותמים שלי</button>
 </section>
+
+<style>
+/* פאנל הניתוח החכם: כרטיסים על גבי שפת המותג הקיימת */
+#aiPanel { margin-top: 16px; }
+#aiPanel .ai-card {
+  background: var(--lavan, #fff); border: 1px solid var(--afor-kav, #d9dbe3);
+  border-radius: 14px; padding: 18px 20px; margin-top: 12px;
+  text-align: right; color: var(--deyo, #0a1330);
+}
+#aiPanel .ai-card h3 { margin: 0 0 8px; font-size: 18px; color: var(--kachol, #0046ff); }
+#aiPanel .ai-moment {
+  display: inline-block; font-size: 13px; font-weight: 600;
+  background: #eef3ff; color: var(--kachol, #0046ff);
+  border-radius: 999px; padding: 2px 10px; margin-inline-start: 8px;
+  cursor: pointer;
+}
+#aiPanel .ai-open { font-size: 19px; line-height: 1.55; }
+#aiPanel .ai-red {
+  border-inline-start: 4px solid #d5324b; background: #fdf3f5;
+}
+#aiPanel .ai-level { font-size: 13px; font-weight: 600; border-radius: 999px; padding: 2px 10px; }
+#aiPanel .ai-level.strong { background: #e7f6ee; color: #1f9d57; }
+#aiPanel .ai-level.mid { background: #fff4e5; color: #b26a00; }
+#aiPanel .ai-level.weak { background: #fdf3f5; color: #d5324b; }
+#aiPanel .ai-level.none { background: #f0f0f5; color: #5a6072; }
+#aiPanel textarea {
+  width: 100%; min-height: 140px; margin-top: 8px; font: inherit;
+  border: 1px solid var(--afor-kav, #d9dbe3); border-radius: 10px; padding: 12px;
+}
+body.watch #aiSection { max-width: 720px; margin-inline: auto; }
+</style>
 
 <script type="module" src="js/watch.js"></script>
 </body>

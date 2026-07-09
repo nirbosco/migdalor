@@ -7,6 +7,10 @@ export const SUPABASE_ANON =
 // כתובת ה-Worker של המוצר.
 export const WORKER_URL = "https://migdalor.nirbosco-com-yotzer-education.workers.dev";
 
+// שירות הניתוח החכם (פעימה 2, Google Cloud Function).
+// ריק = הפיצ'ר מוסתר בממשק. מתמלא אחרי פריסת analysis/deploy.sh.
+export const ANALYSIS_URL = "";
+
 // איש הקשר האנושי שמופיע בכל מבוי סתום. מולא בהשקה (ראו SETUP.md).
 export const CONTACT_NAME = "הצוות";
 export const CONTACT_PHONE = "";
