@@ -9,7 +9,7 @@ export const WORKER_URL = "https://migdalor.nirbosco-com-yotzer-education.worker
 
 // שירות הניתוח החכם (פעימה 2, Google Cloud Function).
 // ריק = הפיצ'ר מוסתר בממשק. מתמלא אחרי פריסת analysis/deploy.sh.
-export const ANALYSIS_URL = "";
+export const ANALYSIS_URL = "https://hotamtech-analyze-6ekc5u6w7q-zf.a.run.app";
 
 // איש הקשר האנושי שמופיע בכל מבוי סתום. מולא בהשקה (ראו SETUP.md).
 export const CONTACT_NAME = "הצוות";
