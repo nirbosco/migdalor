@@ -145,23 +145,44 @@ async function fetchVideo(recording, user, jwt) {
   return Buffer.from(await res.arrayBuffer());
 }
 
-async function transcribe(recordingId, videoBuf, mime) {
-  // מעלים ל-GCS זמני (חובה לאודיו ארוך מדקה), מתמללים, מוחקים.
-  const bucket = storage.bucket(process.env.GCS_TEMP_BUCKET);
-  const ext = (mime || "").includes("mp4") ? "mp4" : "webm";
-  const objName = `tmp/${recordingId}.${ext}`;
-  const file = bucket.file(objName);
-  await file.save(videoBuf, { resumable: videoBuf.length > 5 * 1024 * 1024 });
+// חילוץ האודיו מהווידאו והמרה ל-FLAC מונו 16kHz: הפורמט שהתמלול הכי
+// אמין איתו, ועובד זהה ל-webm (אנדרואיד) ול-mp4 (אייפון). שליחת וידאו
+// שלם לתמלול מחזירה תוצאה ריקה, ולכן החילוץ כאן חובה.
+function extractAudio(videoBuf, mime) {
+  const { execFileSync } = require("child_process");
+  const fs = require("fs");
+  const ffmpeg = require("ffmpeg-static");
+  const inExt = (mime || "").includes("mp4") ? "mp4" : "webm";
+  const inPath = `/tmp/in.${inExt}`;
+  const outPath = "/tmp/out.flac";
+  fs.writeFileSync(inPath, videoBuf);
   try {
-    const encoding = ext === "webm" ? "WEBM_OPUS" : "ENCODING_UNSPECIFIED";
+    execFileSync(ffmpeg, [
+      "-y", "-i", inPath, "-vn", "-ac", "1", "-ar", "16000", outPath,
+    ], { stdio: "pipe" });
+    return fs.readFileSync(outPath);
+  } finally {
+    fs.rmSync(inPath, { force: true });
+    fs.rmSync(outPath, { force: true });
+  }
+}
+
+async function transcribe(recordingId, videoBuf, mime) {
+  // חילוץ אודיו, העלאה ל-GCS זמני (חובה לאודיו ארוך מדקה), תמלול, מחיקה.
+  const audioBuf = extractAudio(videoBuf, mime);
+  const bucket = storage.bucket(process.env.GCS_TEMP_BUCKET);
+  const objName = `tmp/${recordingId}.flac`;
+  const file = bucket.file(objName);
+  await file.save(audioBuf, { resumable: audioBuf.length > 5 * 1024 * 1024 });
+  try {
     const [op] = await speechClient.longRunningRecognize({
       config: {
-        encoding,
-        sampleRateHertz: ext === "webm" ? 48000 : undefined,
+        encoding: "FLAC",
+        sampleRateHertz: 16000,
         languageCode: "he-IL",
         enableWordTimeOffsets: true,
         enableAutomaticPunctuation: true,
-        model: "latest_long",
+        // עברית נתמכת רק במודל ברירת המחדל של v1 (לא latest_long)
       },
       audio: { uri: `gs://${process.env.GCS_TEMP_BUCKET}/${objName}` },
     });
