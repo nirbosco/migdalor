@@ -13,6 +13,7 @@ import {
   listRoster,
   upsertPerson,
   removeFromRoster,
+  signOut,
 } from "./supa.js";
 import { $, show, goScreen, humanDate, watchOnline } from "./ui.js";
 import { initDashShell, wireSort, closePanel } from "./dash-shell.js";
@@ -472,4 +473,12 @@ if (!DEV) {
 wireCsv();
 wireManual();
 wireRoles();
+// התנתקות: חוזרים למסך הכניסה נקיים
+const _lo = document.getElementById("logoutLink");
+if (_lo) _lo.addEventListener("click", async (e) => {
+  e.preventDefault();
+  try { await signOut(); } catch (err) { /* גם אם נכשל, מנקים מקומית */ }
+  location.replace("index.html");
+});
+
 boot();

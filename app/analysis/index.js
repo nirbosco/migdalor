@@ -212,6 +212,7 @@ function transcriptText(transcript) {
 }
 
 async function askClaude(system, userContent) {
+  // tool use מאולץ: ה-API מחזיר JSON תקין מובנה, בלי תלות בפורמט טקסט חופשי
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -221,18 +222,22 @@ async function askClaude(system, userContent) {
     },
     body: JSON.stringify({
       model: process.env.CLAUDE_MODEL || "claude-sonnet-5",
-      max_tokens: 4000,
+      max_tokens: 8000,
       system,
       messages: [{ role: "user", content: userContent }],
+      tools: [{
+        name: "submit_analysis",
+        description: "הגשת תוצר הניתוח במבנה JSON שהוגדר בהנחיות",
+        input_schema: { type: "object" },
+      }],
+      tool_choice: { type: "tool", name: "submit_analysis" },
     }),
   });
   if (!res.ok) throw new Error(`Anthropic: ${res.status} ${await res.text()}`);
   const data = await res.json();
-  const text = (data.content || []).map((c) => c.text || "").join("");
-  // מחלצים JSON גם אם עטוף בגדר קוד
-  const m = text.match(/\{[\s\S]*\}/);
-  if (!m) throw new Error("Claude החזיר פלט לא צפוי");
-  return JSON.parse(m[0]);
+  const block = (data.content || []).find((c) => c.type === "tool_use");
+  if (!block || !block.input) throw new Error("Claude החזיר פלט לא צפוי");
+  return block.input;
 }
 
 // ---------- נקודת הכניסה ----------

@@ -17,6 +17,7 @@ import {
   getOrCreateToken,
   shareWithMentors,
   firstName,
+  signOut,
 } from "./supa.js";
 import {
   $,
@@ -1015,4 +1016,12 @@ wirePrep();
 wireRecording();
 wireGallery();
 wireAfterScreen();
+// התנתקות: חוזרים למסך הכניסה נקיים
+const _lo = document.getElementById("logoutLink");
+if (_lo) _lo.addEventListener("click", async (e) => {
+  e.preventDefault();
+  try { await signOut(); } catch (err) { /* גם אם נכשל, מנקים מקומית */ }
+  location.replace("index.html");
+});
+
 boot();

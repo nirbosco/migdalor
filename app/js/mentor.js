@@ -3,7 +3,7 @@
 // מעוצב כמשטח דשבורדי: shell + טבלה לכל חותמיסט + גרסת מובייל.
 
 import { DEV, devHref } from "./config.js";
-import { supabase, getUser, signInWithGoogle, getMyProfile, listSharedWithMe, firstName } from "./supa.js";
+import { supabase, getUser, signInWithGoogle, getMyProfile, listSharedWithMe, firstName, signOut } from "./supa.js";
 import { $, show, goScreen, humanDate, humanMinutes, watchOnline } from "./ui.js";
 import { initDashShell } from "./dash-shell.js";
 
@@ -157,4 +157,12 @@ if (!DEV) {
     }
   });
 }
+// התנתקות: חוזרים למסך הכניסה נקיים
+const _lo = document.getElementById("logoutLink");
+if (_lo) _lo.addEventListener("click", async (e) => {
+  e.preventDefault();
+  try { await signOut(); } catch (err) { /* גם אם נכשל, מנקים מקומית */ }
+  location.replace("index.html");
+});
+
 boot();
