@@ -120,7 +120,7 @@ async function checkViewAccess(env, token, user, jwt) {
   return { ok: true, recording };
 }
 
-// הרשאת בעלים: החותם צופה בהקלטה של עצמו, גם לפני שיתוף (בלי טוקן).
+// הרשאת בעלים: החותמיסט צופה בהקלטה של עצמו, גם לפני שיתוף (בלי טוקן).
 // ה-RLS על migdalor_recordings מחזיר שורה רק לבעלים או לאדמין, ולכן
 // עצם קבלת השורה עם ה-JWT של המשתמש היא בדיקת ההרשאה.
 async function checkOwnerAccess(env, recordingId, user, jwt) {

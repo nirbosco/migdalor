@@ -1,6 +1,6 @@
-// חותמטק: המסך של המנטור. כל מה ששותף איתי, מקובץ לפי חותם,
+// חותמטק: המסך של המנטור. כל מה ששותף איתי, מקובץ לפי חותמיסט,
 // ממוין מהחדש לישן, עם סימון "חדש" על מה שטרם נצפה.
-// מעוצב כמשטח דשבורדי: shell + טבלה לכל חותם + גרסת מובייל.
+// מעוצב כמשטח דשבורדי: shell + טבלה לכל חותמיסט + גרסת מובייל.
 
 import { DEV, devHref } from "./config.js";
 import { supabase, getUser, signInWithGoogle, getMyProfile, listSharedWithMe, firstName } from "./supa.js";
@@ -70,7 +70,7 @@ async function renderList() {
 
   $("navShareCount").textContent = items.length;
 
-  // קיבוץ לפי חותם, קבוצות ממוינות לפי השיעור החדש ביותר בכל אחת
+  // קיבוץ לפי חותמיסט, קבוצות ממוינות לפי השיעור החדש ביותר בכל אחת
   const byTrainee = new Map();
   for (const it of items) {
     if (!byTrainee.has(it.traineeName)) byTrainee.set(it.traineeName, []);

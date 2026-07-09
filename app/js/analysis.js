@@ -1,5 +1,5 @@
 // חותמטק: הניתוח החכם בצד הלקוח (פעימה 2).
-// שני תוצרים מאותו צינור: משוב אמפתי לחותם, ניתוח אבחוני עמוק למנטור.
+// שני תוצרים מאותו צינור: משוב אמפתי לחותמיסט, ניתוח אבחוני עמוק למנטור.
 // הקליינט רק מבקש ומציג; כל ההרשאות נאכפות בשרת (RLS + שירות הניתוח).
 
 import { ANALYSIS_URL, DEV } from "./config.js";
@@ -168,8 +168,8 @@ export function renderMentorReport(rep, draft) {
     <div class="ai-card"><h3>סיכום למנטור</h3>
       <p><strong>חוזקות מובילות:</strong></p><ul>${list(rep.top_strengths)}</ul>
       <p><strong>שיפורים מובילים:</strong></p><ul>${list(rep.top_improvements)}</ul>
-      <p><strong>לשיחה עם החותם:</strong></p><ul>${list(rep.talking_points)}</ul></div>
-    <div class="ai-card"><h3>טיוטת משוב לחותם</h3>
+      <p><strong>לשיחה עם החותמיסט:</strong></p><ul>${list(rep.talking_points)}</ul></div>
+    <div class="ai-card"><h3>טיוטת משוב לחותמיסט</h3>
       <p class="small">זו טיוטה בלבד. ערכו אותה בקול שלכם לפני שליחה. שום דבר לא נשלח אוטומטית.</p>
       <textarea id="mentorDraft">${esc(draft || "")}</textarea>
       <button id="copyDraftBtn" class="btn-secondary" style="margin-top:10px">העתקת הטיוטה</button>

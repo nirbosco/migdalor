@@ -105,7 +105,7 @@ async function renderOverview() {
     m.textContent = `${f.ownerEmail} | ${humanDate(f.created_at)} | מצב: ${f.status === "failed" ? "נכשלה" : "תקועה יותר מיום"}`;
     const s = document.createElement("div");
     s.className = "status";
-    s.textContent = "כדאי להתקשר לחותם: הסרטון שמור אצלו בטלפון, וכניסה מחודשת לאתר ממשיכה את ההעלאה.";
+    s.textContent = "כדאי להתקשר לחותמיסט: הסרטון שמור אצלו בטלפון, וכניסה מחודשת לאתר ממשיכה את ההעלאה.";
     card.append(t, m, s);
     $("failedUploads").appendChild(card);
   }
@@ -123,7 +123,7 @@ async function renderOverview() {
   $("navTraineeCount").textContent = totalTrainees;
   $("navHelpCount").textContent = helpCount;
 
-  // טבלת החותמים: מכינים את הנתונים עם מפתחות מיון, ומרנדרים לשתי התצוגות
+  // טבלת החותמיסטים: מכינים את הנתונים עם מפתחות מיון, ומרנדרים לשתי התצוגות
   currentTrainees = data.trainees.map((t) => ({
     ...t,
     lastRecordingTs: t.lastRecording ? new Date(t.lastRecording).getTime() : 0,
@@ -134,7 +134,7 @@ async function renderOverview() {
   renderTraineeRows(currentTrainees);
 }
 
-// badge סטטוס לפי מצב החותם
+// badge סטטוס לפי מצב החותמיסט
 function statusTag(tr) {
   if (!tr.lastRecording) return `<span class="tag tag-stuck">עוד לא צילם</span>`;
   if ((tr.shares || 0) === 0) return `<span class="tag">צילם, לא שיתף</span>`;
@@ -208,7 +208,7 @@ function parseCsv(text) {
     if (i === 0 && !cols.some((c) => emailRe.test(c))) return;
     const [traineeEmail, traineeName, mentorEmail, mentorName, type] = cols;
     if (!emailRe.test(traineeEmail || "")) {
-      problems.push(`שורה ${i + 1}: מייל החותם לא תקין (${traineeEmail || "ריק"})`);
+      problems.push(`שורה ${i + 1}: מייל החותמיסט לא תקין (${traineeEmail || "ריק"})`);
       return;
     }
     if (!emailRe.test(mentorEmail || "")) {
@@ -234,7 +234,7 @@ function wireCsv() {
     const trainees = new Set(parsed.rows.map((r) => r.traineeEmail));
     const mentorsSet = new Set(parsed.rows.map((r) => r.mentorEmail));
     $("csvSummary").textContent = parsed.rows.length
-      ? `זיהינו ${trainees.size} חותמים ו-${mentorsSet.size} מנטורים, ובסך הכול ${parsed.rows.length} שיבוצים.`
+      ? `זיהינו ${trainees.size} חותמיסטים ו-${mentorsSet.size} מנטורים, ובסך הכול ${parsed.rows.length} שיבוצים.`
       : "לא זיהינו אף שורה תקינה. בודקים את סדר העמודות ומנסים שוב.";
     $("csvProblems").innerHTML = "";
     for (const p of parsed.problems) {
@@ -320,7 +320,7 @@ function wireManual() {
 
 // ---------- ניהול תפקידים ----------
 
-const ROLE_LABEL = { trainee: "חותם", mentor: "מנטור", admin: "אדמין" };
+const ROLE_LABEL = { trainee: "חותמיסט", mentor: "מנטור", admin: "אדמין" };
 const ROLE_TAG = { trainee: "tag", mentor: "tag tag-ok", admin: "badge-new" };
 
 async function renderRoster() {

@@ -18,7 +18,7 @@ import {
 const params = new URLSearchParams(location.search);
 const token = params.get("token") || "";
 const recId = params.get("rec") || "";
-// מצב בעלים: החותם צופה בהקלטה של עצמו, מזוהה לפי מזהה הקלטה ולא לפי טוקן שיתוף
+// מצב בעלים: החותמיסט צופה בהקלטה של עצמו, מזוהה לפי מזהה הקלטה ולא לפי טוקן שיתוף
 const ownerMode = !token && !!recId;
 let meta = null;
 let viewRegistered = false;
@@ -53,7 +53,7 @@ async function openLesson() {
     showPlayer("");
     $("playerNote").textContent = "מצב תצוגה: אין כאן סרטון אמיתי.";
     show($("myTraineesBtn"), true);
-    // בהדגמה: ?rec= מדמה חותם, ?token= מדמה מנטור
+    // בהדגמה: ?rec= מדמה חותמיסט, ?token= מדמה מנטור
     initAiSection(ownerMode ? "trainee" : "mentor");
     return;
   }
@@ -116,7 +116,7 @@ async function openLesson() {
     return;
   }
 
-  // כפתור "כל החותמים שלי" למנטורים ואדמינים, ולהם גם הניתוח העמוק
+  // כפתור "כל החותמיסטים שלי" למנטורים ואדמינים, ולהם גם הניתוח העמוק
   try {
     const profile = await getMyProfile();
     if (profile && (profile.role === "mentor" || profile.role === "admin")) {

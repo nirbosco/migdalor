@@ -57,7 +57,7 @@
         <span class="brand-icon"><svg><use href="#i-lighthouse"/></svg></span>
         <span class="name">חותמטק</span>
       </div>
-      <a class="nav-item active"><span class="ico"><svg><use href="#i-profile"/></svg></span>החותמים<span class="count" id="navTraineeCount">0</span></a>
+      <a class="nav-item active"><span class="ico"><svg><use href="#i-profile"/></svg></span>החותמיסטים<span class="count" id="navTraineeCount">0</span></a>
       <a class="nav-item" id="navHelp"><span class="ico"><svg><use href="#i-handshake"/></svg></span>מי צריך עזרה<span class="count" id="navHelpCount">0</span></a>
       <a class="nav-item" onclick="openPanel('manualPanel')"><span class="ico"><svg><use href="#i-calendar"/></svg></span>שיבוץ חדש</a>
       <a class="nav-item" onclick="openPanel('csvPanel')"><span class="ico"><svg><use href="#i-share"/></svg></span>טעינת שיבוצים</a>
@@ -86,7 +86,7 @@
       <!-- רצועת סיכום -->
       <div class="stat-strip" id="statStrip">
         <div class="stat-card accent">
-          <div class="stat-label"><span class="ico"><svg><use href="#i-profile"/></svg></span>חותמים</div>
+          <div class="stat-label"><span class="ico"><svg><use href="#i-profile"/></svg></span>חותמיסטים</div>
           <div class="stat-value" id="statTrainees">—</div>
           <div class="stat-delta" id="statTraineesSub">ברשימת השיבוץ</div>
         </div>
@@ -116,9 +116,9 @@
         <div id="failedUploads"></div>
       </div>
 
-      <!-- טבלת החותמים -->
+      <!-- טבלת החותמיסטים -->
       <div class="dash-section">
-        <div class="dash-section-head"><h2>החותמים</h2></div>
+        <div class="dash-section-head"><h2>החותמיסטים</h2></div>
         <div id="tableLoading"><div class="skeleton"></div></div>
         <div id="tableError" class="notice hidden">
           לא הצלחנו להביא את הנתונים.
@@ -129,7 +129,7 @@
           <div class="table-toolbar">
             <div class="search">
               <span class="ico"><svg><use href="#i-eye"/></svg></span>
-              <input type="search" id="traineeSearch" placeholder="חיפוש חותם...">
+              <input type="search" id="traineeSearch" placeholder="חיפוש חותמיסט...">
             </div>
           </div>
 
@@ -167,7 +167,7 @@
   </div>
   <div class="side-panel-body">
     <p class="small">
-      מדביקים כאן שורות מהגיליון. סדר העמודות: מייל חותם, שם חותם, מייל מנטור,
+      מדביקים כאן שורות מהגיליון. סדר העמודות: מייל חותמיסט, שם חותמיסט, מייל מנטור,
       שם מנטור, סוג שיבוץ (לא חובה). מפרידים בפסיק או בטאב (הדבקה מאקסל עובדת כמו שהיא).
     </p>
     <textarea id="csvBox" placeholder="trainee@example.com&#9;משה לוי&#9;mentor@example.com&#9;אהוד כהן&#9;מורה מלווה"></textarea>
@@ -190,9 +190,9 @@
   </div>
   <div class="side-panel-body">
     <form id="manualForm">
-      <label for="mTraineeEmail">מייל החותם</label>
+      <label for="mTraineeEmail">מייל החותמיסט</label>
       <input type="email" id="mTraineeEmail" required>
-      <label for="mTraineeName">שם החותם</label>
+      <label for="mTraineeName">שם החותמיסט</label>
       <input type="text" id="mTraineeName">
       <label for="mMentorEmail">מייל המנטור</label>
       <input type="email" id="mMentorEmail" required>
@@ -214,7 +214,7 @@
     <button class="side-panel-close" onclick="closePanel()" aria-label="סגירה">×</button>
   </div>
   <div class="side-panel-body">
-    <p class="small">הוספת אדם עם תפקיד, או שינוי תפקיד של מי שכבר ברשימה. חותם מצלם ומשתף, מנטור צופה, אדמין מנהל.</p>
+    <p class="small">הוספת אדם עם תפקיד, או שינוי תפקיד של מי שכבר ברשימה. חותמיסט מצלם ומשתף, מנטור צופה, אדמין מנהל.</p>
 
     <form id="roleForm">
       <label for="roleEmail">מייל</label>
@@ -223,7 +223,7 @@
       <input type="text" id="roleName">
       <label for="roleSelect">תפקיד</label>
       <select id="roleSelect">
-        <option value="trainee">חותם</option>
+        <option value="trainee">חותמיסט</option>
         <option value="mentor">מנטור</option>
         <option value="admin">אדמין</option>
       </select>

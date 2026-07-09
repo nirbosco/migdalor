@@ -123,7 +123,7 @@ export async function submitJoinRequest(fullName, phone) {
   return true;
 }
 
-// ---------- חותם: הקלטות, מנטורים, שיתופים ----------
+// ---------- חותמיסט: הקלטות, מנטורים, שיתופים ----------
 
 export async function listMyMentors() {
   if (DEV) return DEV_MENTORS;
@@ -343,7 +343,7 @@ export async function listSharedWithMe() {
     .eq("viewer_email", me.email);
   const viewed = new Set((myViews || []).map((v) => v.share_id));
 
-  // שמות החותמים: דרך הפרופילים (מותר למנטור לראות את החותמים שלו)
+  // שמות החותמיסטים: דרך הפרופילים (מותר למנטור לראות את החותמיסטים שלו)
   const ownerIds = [
     ...new Set(
       (shares || [])
@@ -366,7 +366,7 @@ export async function listSharedWithMe() {
     .map((s) => ({
       shareId: s.id,
       token: s.token,
-      traineeName: owners[s.migdalor_recordings.owner_id] || "חותם",
+      traineeName: owners[s.migdalor_recordings.owner_id] || "חותמיסט",
       title: s.migdalor_recordings.title,
       duration_s: s.migdalor_recordings.duration_s,
       created_at: s.migdalor_recordings.created_at,
