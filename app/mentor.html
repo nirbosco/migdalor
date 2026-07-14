@@ -35,6 +35,12 @@
   <button id="loginBtn" class="btn-primary">כניסה עם Google</button>
 </section>
 
+<section id="screen-denied" class="screen">
+  <h1>העמוד הזה מיועד לצוות המלווה</h1>
+  <p class="mt">הגעת למסך של המנטורים. השיעורים שלך מחכים לך בעמוד האישי שלך.</p>
+  <a id="deniedHome" href="index.html" class="btn-primary" style="display:flex; align-items:center; justify-content:center; text-decoration:none">לעמוד שלי</a>
+</section>
+
 <!-- ===== משטח המנטור: shell ===== -->
 <section id="screen-list" class="screen">
   <div class="app-shell">
@@ -45,7 +51,7 @@
       </div>
       <a class="nav-item active"><span class="ico"><svg><use href="#i-eye"/></svg></span>מה ששותף איתי<span class="count" id="navShareCount">0</span></a>
       <div class="sidebar-foot">
-        <a href="index.html" class="nav-item" id="backHomeLink"><span class="ico"><svg><use href="#i-lighthouse"/></svg></span>לחותמטק</a>
+        <a href="index.html?stay=1" class="nav-item" id="backHomeLink"><span class="ico"><svg><use href="#i-lighthouse"/></svg></span>לחותמטק</a>
         <a id="logoutLink" href="#" class="nav-item">התנתקות</a>
       </div>
     </aside>

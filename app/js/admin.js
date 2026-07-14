@@ -49,6 +49,7 @@ async function boot() {
     /* ייחסם למטה */
   }
   if (!profile || profile.role !== "admin") {
+    $("deniedHome").href = devHref("index.html");
     showPlainScreen("screen-denied");
     return;
   }

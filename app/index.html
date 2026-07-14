@@ -9,14 +9,20 @@
 <link rel="stylesheet" href="brand.css">
 <link rel="stylesheet" href="brand-dashboard.css">
 <style>
-  /* דשבורד המורה: קליל ורחב, בלי סרגל צד. מתרחב רק כשמסך הבית פעיל.
-     שאר מסכי הזרימה החמה נשארים בעמודה הצרה של brand.css. */
-  body.home-dash { max-width: 900px; }
-  .home-wrap { width: 100%; }
-  .home-top { margin-bottom: 16px; }
-  /* הכפתור החם נשאר גדול ובולט גם בתוך הדשבורד */
-  #screen-home #newLessonBtn { margin-top: 4px; }
-  #screen-home .stat-strip { margin-top: 20px; }
+  /* דשבורד החותמיסט: כשמסך הבית פעיל ה-body מקבל home-dash וגם dash,
+     וה-screen-home נפתח ל-app-shell מלא (סרגל צד, פס עליון, תוכן).
+     כל שאר מסכי הזרימה החמה נשארים בעמודה הצרה של brand.css. */
+  .app-shell > .topbar, .app-shell > .dash-main { min-width: 0; }
+  .topbar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* כרטיס הפעולה הראשי: הכפתור החם נשאר ענק ובולט, ברוחב נוח לקריאה */
+  .home-action { max-width: 860px; }
+  #screen-home #newLessonBtn { margin-top: 0; }
+
+  /* מצבי הטבלה (טעינה, שגיאה, ריק) יושבים בתוך כרטיס הטבלה */
+  #lessonsStates { padding: 0 18px; }
+  #lessonsStates > div:not(.hidden) { margin-bottom: 16px; }
+
   /* שורת שיעור לחיצה */
   #lessonsTable tbody tr { cursor: pointer; }
   .lesson-title-cell { font-weight: 500; }
@@ -93,91 +99,116 @@
   <button id="welcomeBtn" class="btn-primary">הבנתי, אפשר להמשיך</button>
 </section>
 
-<!-- ===== הבית: דשבורד קליל למורה ===== -->
+<!-- ===== הבית: דשבורד החותמיסט (app shell מלא) ===== -->
 <section id="screen-home" class="screen">
-  <div class="home-wrap">
-    <!-- כותרת מותג + ברכה -->
-    <div class="app-header home-top">
-      <span class="brand-icon"><svg><use href="#i-lighthouse"/></svg></span>
-      <div>
-        <div class="brand">חותמטק</div>
-        <div class="greeting" id="homeGreeting">שלום</div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon"><svg><use href="#i-lighthouse"/></svg></span>
+        <span class="name">חותמטק</span>
       </div>
-    </div>
-
-    <!-- השער החם: כפתור צילום גדול, נשאר בראש -->
-    <button id="newLessonBtn" class="btn-hero">לצלם שיעור חדש</button>
-    <button id="fromGalleryBtn" class="btn-secondary">צילמתי במצלמה של הטלפון</button>
-    <input type="file" id="galleryFile" accept="video/*" class="hidden">
-
-    <div id="pendingUploadCard" class="card hidden">
-      <div class="title" id="pendingTitle"></div>
-      <div class="status" id="pendingStatus"></div>
-      <div class="progress-track hidden" id="pendingTrack"><div class="progress-fill" id="pendingFill"></div></div>
-      <button id="resumeUploadBtn" class="btn-secondary">להמשיך העלאה</button>
-    </div>
-
-    <!-- רצועת סיכום קצרה -->
-    <div class="stat-strip" id="homeStats" hidden>
-      <div class="stat-card accent">
-        <div class="stat-label"><span class="ico"><svg><use href="#i-clock"/></svg></span>שיעורים</div>
-        <div class="stat-value" id="homeStatLessons">0</div>
-        <div class="stat-delta">צולמו ונשמרו</div>
+      <a class="nav-item active" id="navHome"><span class="ico"><svg><use href="#i-lighthouse"/></svg></span>הבית שלי</a>
+      <a class="nav-item" id="navLessons"><span class="ico"><svg><use href="#i-calendar"/></svg></span>השיעורים שלי<span class="count" id="navLessonsCount">0</span></a>
+      <!-- קישורי צוות: מוסתרים כברירת מחדל, נחשפים רק לבעלי תפקיד -->
+      <a id="mentorLink" href="mentor.html" class="nav-item hidden"><span class="ico"><svg><use href="#i-telescope"/></svg></span>המסך של המנטור</a>
+      <a id="adminLink" href="admin.html" class="nav-item hidden"><span class="ico"><svg><use href="#i-handshake"/></svg></span>פאנל ניהול</a>
+      <div class="sidebar-foot">
+        <a id="logoutLink" href="#" class="nav-item"><span class="ico"><svg><use href="#i-share"/></svg></span>התנתקות</a>
       </div>
-      <div class="stat-card">
-        <div class="stat-label"><span class="ico"><svg><use href="#i-share"/></svg></span>שותפו</div>
-        <div class="stat-value" id="homeStatShared">0</div>
-        <div class="stat-delta">נשלחו למנטור</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label"><span class="ico"><svg><use href="#i-eye"/></svg></span>נצפו</div>
-        <div class="stat-value" id="homeStatViewed">0</div>
-        <div class="stat-delta">המנטור צפה</div>
-      </div>
-    </div>
+    </aside>
 
-    <h2 class="mt">השיעורים שלך</h2>
-    <div id="lessonsLoading">
-      <div class="skeleton"></div>
-      <div class="skeleton"></div>
-    </div>
-    <div id="lessonsError" class="notice hidden">
-      לא הצלחנו להביא את רשימת השיעורים. הם שמורים ובטוחים, זו רק בעיית
-      תקשורת רגעית.
-      <button id="lessonsRetry" class="btn-secondary">לנסות שוב</button>
-    </div>
-    <div id="lessonsEmpty" class="hidden">
-      <p class="mt">
-        עדיין אין כאן שיעורים, וזה בסדר גמור. כשמצלמים את השיעור הראשון,
-        הוא יופיע כאן וישמר לתמיד. הכפתור הכחול למעלה מתחיל הכול.
-      </p>
-    </div>
-
-    <!-- טבלת השיעורים: דסקטופ טבלה, מובייל שורות-כרטיס -->
-    <div class="table-card" id="lessonsCard" hidden>
-      <div class="dtable-scroll">
-        <table class="dtable" id="lessonsTable">
-          <thead>
-            <tr>
-              <th>שם השיעור</th>
-              <th>תאריך</th>
-              <th>משך</th>
-              <th>סטטוס</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="lessonsList"></tbody>
-        </table>
+    <header class="topbar">
+      <button class="shell-burger" aria-label="תפריט">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div class="topbar-title" id="homeGreeting">שלום</div>
+      <div class="topbar-spacer"></div>
+      <div class="topbar-actions">
+        <div class="topbar-user"><span class="avatar" id="homeAvatar">ח</span></div>
       </div>
-      <div class="table-cards" id="lessonsCards"></div>
-    </div>
+    </header>
 
-    <div id="roleLinks" class="mt hidden center">
-      <a id="mentorLink" href="mentor.html" class="hidden">המסך של המנטור</a>
-      <span id="roleLinksSep" class="hidden"> | </span>
-      <a id="adminLink" href="admin.html" class="hidden">פאנל ניהול</a>
-    </div>
-    <div class="mt center"><a id="logoutLink" href="#" class="small" style="color:var(--afor,#5a6072)">להתנתק מהמערכת</a></div>
+    <main class="dash-main">
+      <!-- כרטיס הפעולה הראשי: השער החם, הלב של המסך -->
+      <div class="dash-section home-action">
+        <button id="newLessonBtn" class="btn-hero">לצלם שיעור חדש</button>
+        <button id="fromGalleryBtn" class="btn-secondary">צילמתי במצלמה של הטלפון</button>
+        <input type="file" id="galleryFile" accept="video/*" class="hidden">
+
+        <div id="pendingUploadCard" class="card hidden">
+          <div class="title" id="pendingTitle"></div>
+          <div class="status" id="pendingStatus"></div>
+          <div class="progress-track hidden" id="pendingTrack"><div class="progress-fill" id="pendingFill"></div></div>
+          <button id="resumeUploadBtn" class="btn-secondary">להמשיך העלאה</button>
+        </div>
+      </div>
+
+      <!-- רצועת סיכום -->
+      <div class="stat-strip" id="homeStats" hidden>
+        <div class="stat-card accent">
+          <div class="stat-label"><span class="ico"><svg><use href="#i-clock"/></svg></span>שיעורים</div>
+          <div class="stat-value" id="homeStatLessons">0</div>
+          <div class="stat-delta">צולמו ונשמרו</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label"><span class="ico"><svg><use href="#i-share"/></svg></span>שותפו</div>
+          <div class="stat-value" id="homeStatShared">0</div>
+          <div class="stat-delta">נשלחו למנטור</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label"><span class="ico"><svg><use href="#i-eye"/></svg></span>נצפו</div>
+          <div class="stat-value" id="homeStatViewed">0</div>
+          <div class="stat-delta">המנטור צפה</div>
+        </div>
+      </div>
+
+      <!-- השיעורים שלי: כרטיס טבלה מלא (דסקטופ טבלה, מובייל שורות-כרטיס) -->
+      <div class="dash-section" id="lessonsSection">
+        <div class="table-card">
+          <div class="table-toolbar">
+            <h2 style="font-size:19px; margin:0">השיעורים שלי</h2>
+            <span style="flex:1"></span>
+            <span class="small" id="lessonsCount" style="font-size:15px"></span>
+          </div>
+          <div id="lessonsStates">
+            <div id="lessonsLoading">
+              <div class="skeleton"></div>
+              <div class="skeleton"></div>
+            </div>
+            <div id="lessonsError" class="notice hidden">
+              לא הצלחנו להביא את רשימת השיעורים. הם שמורים ובטוחים, זו רק בעיית
+              תקשורת רגעית.
+              <button id="lessonsRetry" class="btn-secondary">לנסות שוב</button>
+            </div>
+            <div id="lessonsEmpty" class="hidden">
+              <p class="mt">
+                עדיין אין כאן שיעורים, וזה בסדר גמור. כשמצלמים את השיעור הראשון,
+                הוא יופיע כאן וישמר לתמיד. הכפתור הכחול למעלה מתחיל הכול.
+              </p>
+            </div>
+          </div>
+          <div id="lessonsCard" hidden>
+            <div class="dtable-scroll">
+              <table class="dtable" id="lessonsTable">
+                <thead>
+                  <tr>
+                    <th>שם השיעור</th>
+                    <th>תאריך</th>
+                    <th>משך</th>
+                    <th>סטטוס</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="lessonsList"></tbody>
+              </table>
+            </div>
+            <div class="table-cards" id="lessonsCards"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div class="shell-scrim"></div>
   </div>
 </section>
 

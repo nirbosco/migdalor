@@ -37,10 +37,12 @@ import { createUploader, getUploadState } from "./upload.js";
 import { saveUploadState, saveUploadBlob, estimateSpaceMinutes } from "./store.js";
 import { initDashShell } from "./dash-shell.js";
 
-// עטיפה ל-goScreen: מסך הבית מקבל דשבורד רחב (home-dash), שאר מסכי
-// הזרימה החמה נשארים בעמודה הצרה. כך הבית "דשבורדי" בלי לגעת בהקלטה.
+// עטיפה ל-goScreen: מסך הבית מקבל app-shell מלא (home-dash + dash),
+// שאר מסכי הזרימה החמה נשארים בעמודה הצרה. כך הבית "דשבורדי" בלי לגעת בהקלטה.
 function goScreen(id) {
-  document.body.classList.toggle("home-dash", id === "screen-home");
+  const isHome = id === "screen-home";
+  document.body.classList.toggle("home-dash", isHome);
+  document.body.classList.toggle("dash", isHome);
   _goScreen(id);
 }
 
@@ -120,16 +122,16 @@ async function boot() {
 // ---------- בית ----------
 
 async function showHome() {
-  $("homeGreeting").textContent = `שלום, ${firstName(profile.full_name) || ""}`.trim();
+  const name = firstName(profile.full_name) || "";
+  $("homeGreeting").textContent = name ? `שלום, ${name}` : "שלום";
+  $("homeAvatar").textContent = (name || "ח").charAt(0);
 
-  // קישורים שקטים לבעלי תפקידים
+  // קישורי מסכי הצוות בסרגל הצד: נחשפים לבעלי תפקיד בלבד
   if (profile.role === "mentor" || profile.role === "admin") {
-    show($("roleLinks"), true);
     show($("mentorLink"), true);
     $("mentorLink").href = devHref("mentor.html");
     if (profile.role === "admin") {
       show($("adminLink"), true);
-      show($("roleLinksSep"), true);
       $("adminLink").href = devHref("admin.html");
     }
   }
@@ -161,6 +163,8 @@ async function renderLessons() {
   $("homeStats").hidden = true;
   $("lessonsList").innerHTML = "";
   $("lessonsCards").innerHTML = "";
+  $("lessonsCount").textContent = "";
+  $("navLessonsCount").textContent = "0";
   $("lessonsLoading").classList.remove("hidden");
   let lessons;
   try {
@@ -184,6 +188,11 @@ async function renderLessons() {
   $("homeStatViewed").textContent = viewed;
   $("homeStats").hidden = false;
   show($("homeStats"), true);
+
+  // מונים בסרגל הצד ובכותרת הטבלה
+  $("navLessonsCount").textContent = lessons.length;
+  $("lessonsCount").textContent =
+    lessons.length === 1 ? "שיעור אחד" : `${lessons.length} שיעורים`;
 
   $("lessonsCard").hidden = false;
   for (const l of lessons) {
@@ -962,6 +971,17 @@ function wireAfterScreen() {
 
 // ---------- חיווט כללי ----------
 
+// ניווט בסרגל הצד של הבית: "הבית שלי" חוזר לראש הדף,
+// "השיעורים שלי" גולל אל כרטיס הטבלה.
+function wireHomeNav() {
+  $("navHome").addEventListener("click", () =>
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  );
+  $("navLessons").addEventListener("click", () =>
+    $("lessonsSection").scrollIntoView({ behavior: "smooth", block: "start" })
+  );
+}
+
 function wireAuth() {
   $("loginBtn").addEventListener("click", async () => {
     try {
@@ -1012,6 +1032,7 @@ window.addEventListener("beforeunload", (e) => {
 });
 
 wireAuth();
+wireHomeNav();
 wirePrep();
 wireRecording();
 wireGallery();

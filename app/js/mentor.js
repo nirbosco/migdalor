@@ -36,15 +36,25 @@ async function boot() {
     showPlainScreen("screen-login");
     return;
   }
+  let profile = null;
   try {
-    const profile = await getMyProfile();
-    if (profile && profile.full_name) {
-      $("mentorGreeting").textContent = `שלום, ${firstName(profile.full_name)}`;
-      $("mentorAvatar").textContent = initials(profile.full_name);
-    }
+    profile = await getMyProfile();
   } catch (e) {
-    /* גם בלי שם, הרשימה עובדת */
+    /* גם בלי פרופיל ממשיכים: הנתונים עצמם מוגנים ב-RLS */
   }
+  // הגנת UX: חותמיסט שהגיע לכאן מקבל הסבר חם ודרך חזרה לעמוד שלו.
+  // האכיפה האמיתית היא ב-RLS בשרת; המסך רק מכבד אותה.
+  if (profile && profile.role && profile.role !== "mentor" && profile.role !== "admin") {
+    $("deniedHome").href = devHref("index.html");
+    showPlainScreen("screen-denied");
+    return;
+  }
+  if (profile && profile.full_name) {
+    $("mentorGreeting").textContent = `שלום, ${firstName(profile.full_name)}`;
+    $("mentorAvatar").textContent = initials(profile.full_name);
+  }
+  // חזרה לעמוד החותמיסט בלי שהניתוב יחזיר לכאן מיד (stay=1)
+  $("backHomeLink").href = devHref("index.html?stay=1");
   showListShell();
   await renderList();
 }
