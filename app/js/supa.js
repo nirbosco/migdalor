@@ -6,7 +6,7 @@
 // וגם אם היה נכתב, ה-RLS חוסם אנונימיים ממילא.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { SUPABASE_URL, SUPABASE_ANON, DEV } from "./config.js";
+import { SUPABASE_URL, SUPABASE_ANON, WORKER_URL, DEV } from "./config.js";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
 
@@ -538,6 +538,40 @@ export async function removeFromRoster(email) {
     .delete()
     .eq("email", (email || "").trim().toLowerCase());
   if (error) throw error;
+}
+
+// ---------- ייבוא שיבוצים: משיכת גיליון גוגל (אדמין) ----------
+
+// במצב תצוגה מדמים משיכה מוצלחת בלי רשת: כותרות התבנית, שתי שורות
+// תקינות ושורה אחת שבורה, כדי שגם מסך הבדיקה ייראה בפעולה.
+const DEV_SHEET_CSV = [
+  "מייל חותמיסט,שם חותמיסט,מייל מנטור,שם מנטור,סוג שיבוץ (לא חובה)",
+  'moshe.demo@example.com,משה (הדגמה),ehud.demo@example.com,אהוד (הדגמה),"מורה מלווה, כיתה ז"',
+  "sara.demo@example.com,שרה (הדגמה),ruth.demo@example.com,רות (הדגמה),",
+  "בלי-מייל,יעקב (הדגמה),ehud.demo@example.com,אהוד (הדגמה),",
+].join("\n");
+
+// מושך את הגיליון כ-CSV דרך ה-Worker (לגוגל אין CORS, וה-Worker גם
+// אוכף שרק אדמין מחובר מושך). שגיאות חוזרות בעברית כמו שהן מהשרת.
+export async function fetchSheetCsv(sheetId, gid) {
+  if (DEV) return DEV_SHEET_CSV;
+  const token = await getAccessToken();
+  if (!token) throw new Error("נדרשת כניסה מחדש");
+  const res = await fetch(
+    `${WORKER_URL}/sheet?id=${encodeURIComponent(sheetId)}&gid=${encodeURIComponent(gid || "0")}`,
+    { headers: { authorization: "Bearer " + token } }
+  );
+  const text = await res.text();
+  if (!res.ok) {
+    let msg = "המשיכה נכשלה. מנסים שוב עוד רגע.";
+    try {
+      msg = JSON.parse(text).error || msg;
+    } catch (e) {
+      /* לא JSON: נשארים עם ההודעה הכללית */
+    }
+    throw new Error(msg);
+  }
+  return text;
 }
 
 export async function addAssignments(rows) {

@@ -22,6 +22,28 @@
   @media (max-width: 900px) {
     .sidebar-actions { display: block; margin-top: 10px; padding-top: 10px; border-top: var(--kav); }
   }
+  /* מדור טעינת שיבוצים: צעדים ממוספרים, מסלול הדבקה צנוע, וטבלת הבדיקה */
+  .import-step { margin-top: 18px; padding-top: 16px; border-top: var(--kav); }
+  .import-step-title {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 600; font-size: 17px; color: var(--deyo); margin-bottom: 4px;
+  }
+  .import-step-title .num {
+    width: 26px; height: 26px; flex: none; border-radius: 50%;
+    background: #eef3ff; color: var(--kachol);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+  }
+  .side-panel .small.fine { font-size: 15px; margin-top: 8px; }
+  #sheetUrl { direction: ltr; text-align: left; }
+  .paste-details { margin-top: 16px; }
+  .paste-details summary { cursor: pointer; color: var(--kachol); font-size: 16px; font-weight: 500; }
+  .import-preview { margin-top: 14px; }
+  .import-preview .dtable th, .import-preview .dtable td { padding: 10px 12px; font-size: 15px; }
+  .import-preview .sub-mail { display: block; font-size: 12.5px; color: var(--afor); direction: ltr; text-align: right; }
+  .import-preview tr.row-bad td { background: var(--adom-rakh); }
+  .import-preview .row-reason { color: var(--adom); font-size: 13.5px; font-weight: 500; white-space: normal; }
+  .import-preview .trow-card.row-bad { border-inline-start: 4px solid var(--adom); }
 </style>
 </head>
 <body>
@@ -78,7 +100,7 @@
       <div class="topbar-actions">
         <button class="btn-secondary" style="margin:0; min-height:42px; padding:0 18px; font-size:16px" onclick="openPanel('manualPanel')">שיבוץ חדש</button>
         <button class="btn-secondary" style="margin:0; min-height:42px; padding:0 18px; font-size:16px" onclick="openPanel('rolesPanel')">ניהול תפקידים</button>
-        <button class="btn-secondary" style="margin:0; min-height:42px; padding:0 18px; font-size:16px" onclick="openPanel('csvPanel')">ייבוא מאקסל</button>
+        <button class="btn-secondary" style="margin:0; min-height:42px; padding:0 18px; font-size:16px" onclick="openPanel('csvPanel')">טעינת שיבוצים</button>
         <div class="topbar-user"><span class="avatar">נ</span></div>
       </div>
     </header>
@@ -160,24 +182,65 @@
   </div>
 </section>
 
-<!-- ===== פאנל צד: ייבוא מאקסל ===== -->
+<!-- ===== פאנל צד: טעינת שיבוצים ===== -->
 <div class="side-panel" id="csvPanel">
   <div class="side-panel-head">
-    <h3>טעינת שיבוצים מאקסל</h3>
+    <h3>טעינת שיבוצים</h3>
     <button class="side-panel-close" onclick="closePanel()" aria-label="סגירה">×</button>
   </div>
   <div class="side-panel-body">
     <p class="small">
-      מדביקים כאן שורות מהגיליון. סדר העמודות: מייל חותמיסט, שם חותמיסט, מייל מנטור,
-      שם מנטור, סוג שיבוץ (לא חובה). מפרידים בפסיק או בטאב (הדבקה מאקסל עובדת כמו שהיא).
+      ממלאים את התבנית שורה לכל שיבוץ, וטוענים אותה חזרה כקובץ או דרך קישור לגיליון גוגל.
+      לפני הטעינה מוצגת בדיקה של כל השורות.
     </p>
-    <textarea id="csvBox" placeholder="trainee@example.com&#9;משה לוי&#9;mentor@example.com&#9;אהוד כהן&#9;מורה מלווה"></textarea>
-    <button id="csvPreviewBtn" class="btn-secondary">לבדוק לפני טעינה</button>
-    <div id="csvPreview" class="hidden">
-      <div class="notice plain" id="csvSummary"></div>
-      <div id="csvProblems"></div>
-      <button id="csvCommitBtn" class="btn-primary">לאשר ולטעון</button>
+
+    <div class="import-step">
+      <div class="import-step-title"><span class="num">1</span>מורידים תבנית וממלאים</div>
+      <button id="tplBtn" class="btn-secondary">הורדת תבנית אקסל</button>
+      <p class="small fine">בתבנית יש דף הוראות קצר ושתי שורות דוגמה שמוחקים לפני הטעינה.</p>
     </div>
+
+    <div class="import-step">
+      <div class="import-step-title"><span class="num">2</span>טוענים חזרה</div>
+
+      <input type="file" id="xlsFile" class="hidden" accept=".xlsx,.xls,.csv">
+      <button id="xlsPickBtn" class="btn-secondary">בחירת קובץ אקסל מהמחשב</button>
+
+      <label for="sheetUrl">או קישור לגיליון גוגל</label>
+      <input type="text" id="sheetUrl" inputmode="url" placeholder="https://docs.google.com/spreadsheets/d/...">
+      <button id="sheetPullBtn" class="btn-secondary">משיכה מהגיליון</button>
+      <p class="small fine">שיתוף הגיליון צריך להיות במצב "כל מי שיש לו הקישור".</p>
+
+      <details class="paste-details">
+        <summary>או להדביק שורות מהגיליון</summary>
+        <p class="small fine">
+          סדר העמודות: מייל חותמיסט, שם חותמיסט, מייל מנטור, שם מנטור, סוג שיבוץ (לא חובה).
+          מפרידים בפסיק או בטאב (הדבקה מאקסל עובדת כמו שהיא).
+        </p>
+        <textarea id="csvBox" placeholder="trainee@example.com&#9;משה לוי&#9;mentor@example.com&#9;אהוד כהן&#9;מורה מלווה"></textarea>
+        <button id="csvPreviewBtn" class="btn-secondary">לבדוק לפני טעינה</button>
+      </details>
+    </div>
+
+    <div id="csvBusy" class="notice plain hidden">רק רגע, קוראים את הנתונים...</div>
+
+    <div id="csvPreview" class="hidden">
+      <div class="import-step import-preview-step">
+        <div class="import-step-title"><span class="num">3</span>בודקים וטוענים</div>
+        <div class="notice plain" id="csvSummary"></div>
+        <div class="table-card import-preview">
+          <div class="dtable-scroll">
+            <table class="dtable">
+              <thead><tr><th>חותמיסט</th><th>מנטור</th><th>סוג</th><th>בדיקה</th></tr></thead>
+              <tbody id="previewRows"></tbody>
+            </table>
+          </div>
+          <div class="table-cards" id="previewCards"></div>
+        </div>
+        <button id="csvCommitBtn" class="btn-primary">לטעון</button>
+      </div>
+    </div>
+
     <div id="csvDone" class="notice ok hidden"></div>
     <div id="csvError" class="notice hidden"></div>
   </div>
