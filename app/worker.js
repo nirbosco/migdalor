@@ -291,6 +291,45 @@ async function handleMeta(request, url, env) {
   });
 }
 
+// ייבוא שיבוצים מ-Google Sheets: פרוקסי ל-CSV הציבורי של הגיליון.
+// הדפדפן לא יכול למשוך את זה ישירות (אין CORS אצל גוגל), ולכן עוברים כאן.
+// מותר רק לאדמין, ורק מ-docs.google.com.
+async function handleSheetProxy(request, url, env) {
+  const { user, jwt } = await getAuth(request, url, env);
+  if (!user) return deny("נדרשת כניסה", 401);
+  const profs = await supa(
+    env,
+    `migdalor_profiles?id=eq.${user.id}&select=role`,
+    { jwt }
+  );
+  if (!profs.length || profs[0].role !== "admin") return deny();
+
+  const sheetId = url.searchParams.get("id") || "";
+  const gid = url.searchParams.get("gid") || "0";
+  if (!/^[A-Za-z0-9_-]{10,}$/.test(sheetId) || !/^\d{0,12}$/.test(gid)) {
+    return json({ error: "מזהה גיליון לא תקין" }, 400);
+  }
+  const gres = await fetch(
+    `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`,
+    { redirect: "follow" }
+  );
+  if (!gres.ok) {
+    return json(
+      { error: "הגיליון לא נגיש. יש לוודא שהשיתוף שלו הוא 'כל מי שיש לו הקישור'" },
+      gres.status === 404 ? 404 : 403
+    );
+  }
+  const text = await gres.text();
+  // עמוד HTML במקום CSV = הגיליון פרטי
+  if (text.trimStart().startsWith("<")) {
+    return json({ error: "הגיליון פרטי. יש לשנות שיתוף ל'כל מי שיש לו הקישור'" }, 403);
+  }
+  return new Response(text, {
+    status: 200,
+    headers: { "content-type": "text/csv; charset=utf-8", ...CORS },
+  });
+}
+
 // פרטי ההקלטה לבעלים (לצפייה עצמית, בלי טוקן)
 async function handleOwnerMeta(request, url, env) {
   const recordingId = url.searchParams.get("rec") || "";
@@ -346,6 +385,9 @@ export default {
       }
       if (path === "/mine-meta" && request.method === "GET") {
         return await handleOwnerMeta(request, url, env);
+      }
+      if (path === "/sheet" && request.method === "GET") {
+        return await handleSheetProxy(request, url, env);
       }
       if (path === "/meta" && request.method === "GET") {
         return await handleMeta(request, url, env);

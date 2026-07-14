@@ -134,58 +134,83 @@ async function openLesson() {
 
 // ---------- הניתוח החכם (פעימה 2) ----------
 
-function initAiSection(audience) {
+async function initAiSection(audience) {
   if (!analysisEnabled()) return;
   const btn = $("aiBtn");
+  const status = $("aiStatus");
   btn.textContent =
     audience === "mentor" ? "ניתוח עמוק של השיעור" : "קבל משוב חכם על השיעור";
   show($("aiSection"), true);
 
-  // אם כבר יש תוצאה, מציגים ישר בלי להריץ שוב
-  getAnalysis(meta.recordingId).then((row) => {
-    if (row && row.status === "ready") btn.textContent =
-      audience === "mentor" ? "הצגת הניתוח העמוק" : "הצגת המשוב החכם";
-  }).catch(() => {});
+  // הצגת התוצאה השמורה: המשוב שייך לדף השיעור ומופיע בו תמיד
+  const renderSaved = async (row) => {
+    const panel = $("aiPanel");
+    if (audience === "mentor") {
+      const rep = await getMentorReport(meta.recordingId);
+      panel.innerHTML = renderMentorReport((rep && rep.report) || {}, rep && rep.mentor_note_draft);
+      const copyBtn = panel.querySelector("#copyDraftBtn");
+      if (copyBtn)
+        copyBtn.onclick = async () => {
+          await copyText(panel.querySelector("#mentorDraft").value);
+          show(panel.querySelector("#copyDraftDone"), true);
+        };
+    } else {
+      panel.innerHTML = renderTraineeFeedback((row && row.trainee_feedback) || {});
+    }
+    wireMoments(panel, $("player"));
+    show(panel, true);
+    show(status, false);
+    btn.classList.add("hidden");
+  };
+
+  const labels = {
+    transcribing: "מקשיבים לשיעור ומתמללים...",
+    analyzing: "קוראים את השיעור לאור זרקורי המגדלור...",
+    ready: "מוכן!",
+  };
+
+  const followRun = async () => {
+    show(status, true);
+    const row = await waitForAnalysis(meta.recordingId, (st) => {
+      status.textContent = labels[st] || "עובדים על זה...";
+    });
+    await renderSaved(row);
+  };
+
+  // מצב פתיחה: משוב מוכן מוצג מיד; ריצה באמצע ממשיכה להתעדכן; כישלון מוסבר
+  try {
+    const row = await getAnalysis(meta.recordingId);
+    if (row && row.status === "ready") {
+      await renderSaved(row);
+      return;
+    }
+    if (row && ["transcribing", "analyzing", "pending"].includes(row.status)) {
+      btn.classList.add("hidden");
+      await followRun();
+      return;
+    }
+    if (row && row.status === "failed") {
+      show(status, true);
+      status.textContent =
+        "הניתוח הקודם לא הצליח: " + (row.error || "סיבה לא ידועה") + ".";
+      btn.textContent = "לנסות שוב";
+    }
+  } catch (e) {
+    /* אין שורה עדיין, נשאר כפתור רגיל */
+  }
 
   btn.onclick = async () => {
     btn.disabled = true;
-    const status = $("aiStatus");
     show(status, true);
     try {
-      const existing = await getAnalysis(meta.recordingId);
-      if (!existing || existing.status === "failed") {
-        status.textContent = "מתחילים להקשיב לשיעור... זה לוקח כמה דקות, אפשר להשאיר את הדף פתוח.";
-        await requestAnalysis(meta.recordingId);
-      }
-      const labels = {
-        transcribing: "מקשיבים לשיעור ומתמללים...",
-        analyzing: "קוראים את השיעור לאור זרקורי המגדלור...",
-        ready: "מוכן!",
-      };
-      const row = await waitForAnalysis(meta.recordingId, (st) => {
-        status.textContent = labels[st] || "עובדים על זה...";
-      });
-      show(status, false);
-      const panel = $("aiPanel");
-      if (audience === "mentor") {
-        const rep = await getMentorReport(meta.recordingId);
-        panel.innerHTML = renderMentorReport(rep.report || {}, rep.mentor_note_draft);
-        const copyBtn = panel.querySelector("#copyDraftBtn");
-        if (copyBtn)
-          copyBtn.onclick = async () => {
-            await copyText(panel.querySelector("#mentorDraft").value);
-            show(panel.querySelector("#copyDraftDone"), true);
-          };
-      } else {
-        panel.innerHTML = renderTraineeFeedback(row.trainee_feedback || {});
-      }
-      wireMoments(panel, $("player"));
-      show(panel, true);
-      btn.classList.add("hidden");
+      status.textContent =
+        "מתחילים להקשיב לשיעור... זה לוקח כמה דקות, אפשר לסגור ולחזור מאוחר יותר.";
+      await requestAnalysis(meta.recordingId);
+      await followRun();
     } catch (e) {
       status.textContent = "משהו השתבש בניתוח: " + (e.message || e) + " אפשר לנסות שוב.";
-      show(status, true);
       btn.disabled = false;
+      btn.textContent = "לנסות שוב";
     }
   };
 }

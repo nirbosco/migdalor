@@ -260,13 +260,17 @@ functions.http("analyze", async (req, res) => {
 
   // אם כבר יש ניתוח מוכן, לא מריצים שוב (חוסך עלות)
   const existing = await supaService(
-    `migdalor_analyses?recording_id=eq.${recordingId}&select=status`
+    `migdalor_analyses?recording_id=eq.${recordingId}&select=status,updated_at`
   );
   if (existing.length && existing[0].status === "ready") {
     return res.status(200).json({ ok: true, status: "ready" });
   }
   if (existing.length && ["transcribing", "analyzing"].includes(existing[0].status)) {
-    return res.status(200).json({ ok: true, status: existing[0].status });
+    // ריצה חיה: מחזירים את המצב. ריצה שנתקעה (מעל 30 דקות בלי עדכון) משוחררת לריצה חדשה.
+    const ageMs = Date.now() - new Date(existing[0].updated_at).getTime();
+    if (ageMs < 30 * 60 * 1000) {
+      return res.status(200).json({ ok: true, status: existing[0].status });
+    }
   }
 
   // שורת מצב (upsert): מכאן הקליינט עוקב ב-polling
