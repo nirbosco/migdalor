@@ -1,5 +1,5 @@
 // חותמטק: מרכז הסימולציות. עמוד לצוות בלבד (מוביל בית או אדמין):
-// צילום סימולציה עד 10 דקות, העלאה מיידית, סימון קטעים והקרנה לקבוצה.
+// צילום סימולציה (פריסטייל או בהגבלת זמן לבחירה), העלאה מיידית, סימון קטעים והקרנה לקבוצה.
 // בלי AI ובלי ניתוחים: המנוע הוא אותו מנוע הקלטה והעלאה של השיעורים,
 // והרשומות נשמרות ב-migdalor_recordings עם kind='simulation'.
 
@@ -18,8 +18,8 @@ import { createRecorder } from "./recorder.js";
 import { createUploader, getUploadState } from "./upload.js";
 import { saveUploadState, saveUploadBlob, estimateSpaceMinutes } from "./store.js";
 
-// תקרת הסימולציה: 10 דקות, עצירה אוטומטית.
-const MAX_SECONDS = 600;
+// הגבלת זמן: לבחירת המצלם/ת במסך ההכנה. null = פריסטייל, בלי עצירה.
+let timeLimitS = null;
 
 let user = null;
 let profile = null;
@@ -465,7 +465,7 @@ async function switchPrepDevices() {
 async function showSpaceLine() {
   const est = await estimateSpaceMinutes(1500000);
   if (!est) {
-    $("spaceLine").textContent = "לא הצלחנו לבדוק כמה מקום פנוי יש. סימולציה של 10 דקות כמעט תמיד נכנסת.";
+    $("spaceLine").textContent = "לא הצלחנו לבדוק כמה מקום פנוי יש. סימולציה קצרה כמעט תמיד נכנסת.";
     return;
   }
   if (est.minutes >= 12) {
@@ -480,19 +480,57 @@ async function showSpaceLine() {
 // ---------- צילום ----------
 
 function onRecTimer(s) {
-  const left = MAX_SECONDS - s;
-  $("recTimer").textContent = clock(Math.min(s, MAX_SECONDS));
+  if (timeLimitS == null) {
+    $("recTimer").textContent = clock(s);
+    return;
+  }
+  const left = timeLimitS - s;
+  $("recTimer").textContent = clock(Math.min(s, timeLimitS));
   if (left <= 60 && left > 0) {
-    $("recWarn").textContent = "נשארה פחות מדקה. הצילום ייעצר לבד ב-10:00.";
+    $("recWarn").textContent = `נשארה פחות מדקה. הצילום ייעצר לבד ב-${clock(timeLimitS)}.`;
     show($("recWarn"), true);
   }
-  if (s >= MAX_SECONDS && !autoStopped) {
+  if (s >= timeLimitS && !autoStopped) {
     autoStopped = true;
     stopAndFinish();
   }
 }
 
+// ---------- בחירת הגבלת הזמן ----------
+function wireLimitChooser() {
+  const free = $("limitFree"), timed = $("limitTimed"), mins = $("limitMinutes");
+  if (!free || !timed) return;
+  const saved = localStorage.getItem("hotamtech_sim_limit");
+  if (saved && saved !== "free") {
+    mins.value = saved;
+    free.classList.remove("selected");
+    timed.classList.add("selected");
+  }
+  const pick = (isTimed) => {
+    free.classList.toggle("selected", !isTimed);
+    timed.classList.toggle("selected", isTimed);
+    localStorage.setItem("hotamtech_sim_limit", isTimed ? String(currentMins()) : "free");
+  };
+  const currentMins = () => Math.max(1, Math.min(60, parseInt(mins.value, 10) || 10));
+  free.addEventListener("click", () => pick(false));
+  timed.addEventListener("click", () => pick(true));
+  mins.addEventListener("change", () => { mins.value = currentMins(); pick(true); });
+  mins.addEventListener("click", (e) => { e.stopPropagation(); pick(true); });
+}
+
+// נקרא ברגע תחילת צילום: קובע את ההגבלה לריצה הזו
+function applyChosenLimit() {
+  const timed = $("limitTimed");
+  const mins = $("limitMinutes");
+  if (timed && timed.classList.contains("selected")) {
+    timeLimitS = Math.max(1, Math.min(60, parseInt(mins.value, 10) || 10)) * 60;
+  } else {
+    timeLimitS = null;
+  }
+}
+
 async function startRecording() {
+  applyChosenLimit();
   goScreen("screen-record");
   $("recVideo").srcObject = $("prepVideo").srcObject;
   show($("stopConfirm"), false);
@@ -974,6 +1012,7 @@ function wire() {
   });
 
   $("openCameraBtn").addEventListener("click", openPrepCamera);
+  wireLimitChooser();
   $("retryCameraBtn").addEventListener("click", openPrepCamera);
   $("camSel").addEventListener("change", switchPrepDevices);
   $("micSel").addEventListener("change", switchPrepDevices);

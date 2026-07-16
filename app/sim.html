@@ -103,6 +103,35 @@
 
   /* קרן הזוהר של הכפתור הראשי נשארת בתוך העמודה הצרה (בלי גלילה אופקית במובייל) */
   #newSimBtn.beam::before { inset: -26px 0 -14px; }
+/* בחירת הגבלת זמן */
+.limit-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.limit-pill {
+  border: 1.5px solid var(--kachol, #0046ff);
+  background: transparent;
+  color: var(--kachol, #0046ff);
+  border-radius: 999px;
+  padding: 11px 18px;
+  font-size: 16px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.limit-pill.selected {
+  background: var(--kachol, #0046ff);
+  color: #fff;
+}
+.limit-pill input {
+  width: 52px;
+  margin: 0 4px;
+  border: none;
+  border-bottom: 1.5px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  padding: 0;
+  min-height: 0;
+}
+.limit-pill input:focus { outline: none; }
 </style>
 </head>
 <body>
@@ -195,6 +224,12 @@
     <select id="camSel"></select>
     <label for="micSel">מיקרופון</label>
     <select id="micSel"></select>
+    <label>הגבלת זמן</label>
+    <div class="limit-row" id="limitRow">
+      <button type="button" id="limitFree" class="limit-pill selected">פריסטייל, בלי הגבלה</button>
+      <button type="button" id="limitTimed" class="limit-pill">לעצור אחרי
+        <input id="limitMinutes" type="number" min="1" max="60" value="10" inputmode="numeric"> דקות</button>
+    </div>
     <p class="small mt" id="spaceLine">בודקים כמה מקום פנוי יש בטלפון...</p>
     <button id="startRecordBtn" class="btn-primary">להתחיל לצלם</button>
   </div>
