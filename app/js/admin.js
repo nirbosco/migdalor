@@ -6,6 +6,7 @@ import {
   supabase,
   getUser,
   signInWithGoogle,
+  signInWithEmailOtp,
   getMyProfile,
   adminOverview,
   upsertRosterRows,
@@ -202,8 +203,8 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TEMPLATE_HEADERS = [
   "מייל חותמיסט",
   "שם חותמיסט",
-  "מייל מנטור",
-  "שם מנטור",
+  "מייל מוביל בית",
+  "שם מוביל בית",
   "סוג שיבוץ (לא חובה)",
 ];
 // שורות הדוגמה בתבנית מסומנות כך, והייבוא מדלג עליהן אם נשכחו בפנים
@@ -278,7 +279,7 @@ function detectColumns(header) {
     h.includes("מייל") || h.includes("אימייל") || h.includes("דוא") || h.includes("mail");
   const isName = (h) => h.includes("שם") || h.includes("name");
   const isTrainee = (h) => h.includes("חותמיסט") || h.includes("trainee");
-  const isMentor = (h) => h.includes("מנטור") || h.includes("mentor");
+  const isMentor = (h) => h.includes("מוביל") || h.includes("מנטור") || h.includes("mentor");
   const find = (a, b) => H.findIndex((h) => a(h) && b(h));
   const te = find(isTrainee, isMail);
   const me = find(isMentor, isMail);
@@ -327,8 +328,8 @@ function normalizeTable(aoa) {
     };
     if (!r.traineeEmail) r.problem = "חסר מייל של חותמיסט";
     else if (!EMAIL_RE.test(r.traineeEmail)) r.problem = "מייל החותמיסט לא תקין";
-    else if (!r.mentorEmail) r.problem = "חסר מייל של מנטור";
-    else if (!EMAIL_RE.test(r.mentorEmail)) r.problem = "מייל המנטור לא תקין";
+    else if (!r.mentorEmail) r.problem = "חסר מייל של מוביל בית";
+    else if (!EMAIL_RE.test(r.mentorEmail)) r.problem = "מייל מוביל הבית לא תקין";
     else {
       const key = r.traineeEmail + "|" + r.mentorEmail;
       if (seen.has(key)) r.problem = "שיבוץ כפול: הצמד הזה כבר מופיע למעלה";
@@ -386,7 +387,7 @@ function renderPreview(rows) {
       (r.problem ? "" : `<span class="tag tag-ok" style="margin-inline-start:auto">תקין</span>`) +
       `</div>` +
       `<div class="tc-grid">` +
-      `<div class="tc-field"><span class="k">מנטור</span><span class="v">${esc(r.mentorName || r.mentorEmail)}</span></div>` +
+      `<div class="tc-field"><span class="k">מוביל בית</span><span class="v">${esc(r.mentorName || r.mentorEmail)}</span></div>` +
       `<div class="tc-field"><span class="k">סוג</span><span class="v">${esc(r.type || "—")}</span></div>` +
       `</div>` +
       (r.problem ? `<div class="row-reason" style="margin-top:8px">${esc(r.problem)}</div>` : "");
@@ -413,14 +414,14 @@ async function downloadTemplate() {
     const XLSX = await loadXLSX();
     const ws = XLSX.utils.aoa_to_sheet([
       TEMPLATE_HEADERS,
-      ["israela@example.com", `ישראלה ישראלי ${EXAMPLE_MARK}`, "mentor@example.com", `ישראל ישראלי ${EXAMPLE_MARK}`, "מורה מלווה"],
-      ["israela@example.com", `ישראלה ישראלי ${EXAMPLE_MARK}`, "mentor2@example.com", `רות כהן ${EXAMPLE_MARK}`, "מוביל בית"],
+      ["israela@example.com", `ישראלה ישראלי ${EXAMPLE_MARK}`, "mentor@example.com", `ישראל ישראלי ${EXAMPLE_MARK}`, "מוביל בית"],
+      ["israela@example.com", `ישראלה ישראלי ${EXAMPLE_MARK}`, "mentor2@example.com", `רות כהן ${EXAMPLE_MARK}`, "מוביל דעת"],
     ]);
     ws["!cols"] = [{ wch: 26 }, { wch: 22 }, { wch: 26 }, { wch: 22 }, { wch: 20 }];
     const help = XLSX.utils.aoa_to_sheet([
-      ['ממלאים בגיליון "שיבוצים" שורה אחת לכל שיבוץ: חותמיסט ומנטור.'],
-      ["אותו חותמיסט יכול להופיע בכמה שורות, עם מנטור אחר בכל שורה."],
-      ['עמודת "סוג שיבוץ" לא חובה (למשל: מורה מלווה, מוביל בית).'],
+      ['ממלאים בגיליון "שיבוצים" שורה אחת לכל שיבוץ: חותמיסט ומוביל בית.'],
+      ["אותו חותמיסט יכול להופיע בכמה שורות, עם מוביל בית אחר בכל שורה."],
+      ['עמודת "סוג שיבוץ" לא חובה (למשל: מוביל בית, מוביל דעת).'],
       ["מוחקים את שתי שורות הדוגמה לפני הטעינה."],
     ]);
     help["!cols"] = [{ wch: 70 }];
@@ -599,7 +600,7 @@ function wireManual() {
 
 // ---------- ניהול תפקידים ----------
 
-const ROLE_LABEL = { trainee: "חותמיסט", mentor: "מנטור", admin: "אדמין" };
+const ROLE_LABEL = { trainee: "חותמיסט", mentor: "מוביל בית", admin: "אדמין" };
 const ROLE_TAG = { trainee: "tag", mentor: "tag tag-ok", admin: "badge-new" };
 
 async function renderRoster() {
@@ -730,7 +731,42 @@ function wireRoles() {
     .forEach((el) => el.addEventListener("click", renderRoster));
 }
 
+// כניסה במייל ארגוני (TFI): קישור קסם למייל. שגיאות מוסברות בעברית.
+function otpErrorText(err) {
+  const msg = String((err && err.message) || err || "");
+  if ((err && err.status === 429) || /rate ?limit|too many|429/i.test(msg))
+    return "יותר מדי ניסיונות, המתינו כמה דקות ומנסים שוב.";
+  if (/invalid|valid email|unable to validate/i.test(msg))
+    return "כתובת המייל לא נראית תקינה. בודקים אותה ומנסים שוב.";
+  return "שליחת הקישור לא הצליחה כרגע. מנסים שוב בעוד רגע.";
+}
+
+function wireEmailOtp() {
+  const open = $("otpOpenBtn");
+  if (!open) return;
+  open.addEventListener("click", () => {
+    show(open, false);
+    show($("otpForm"), true);
+    $("otpEmail").focus();
+  });
+  $("otpForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    show($("otpDone"), false);
+    show($("otpError"), false);
+    $("otpSendBtn").disabled = true;
+    try {
+      await signInWithEmailOtp($("otpEmail").value);
+      show($("otpDone"), true);
+    } catch (err) {
+      $("otpError").textContent = otpErrorText(err);
+      show($("otpError"), true);
+    }
+    $("otpSendBtn").disabled = false;
+  });
+}
+
 $("loginBtn").addEventListener("click", signInWithGoogle);
+wireEmailOtp();
 $("tableRetry").addEventListener("click", renderOverview);
 $("traineeSearch").addEventListener("input", () => renderTraineeRows(currentTrainees));
 wireSort(

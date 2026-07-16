@@ -12,6 +12,14 @@
   .app-shell > .topbar, .app-shell > .dash-main { min-width: 0; }
   .topbar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .dash-section-head .cell-name h2 { margin: 0; }
+  /* מפריד "או" בין שתי דרכי הכניסה */
+  .login-divider {
+    display: flex; align-items: center; gap: 12px;
+    color: var(--afor); font-size: 16px; margin-top: 18px;
+  }
+  .login-divider::before, .login-divider::after {
+    content: ""; flex: 1; border-top: var(--kav);
+  }
 </style>
 </head>
 <body>
@@ -33,15 +41,24 @@
     זה בטוח, ואנחנו לא רואים את הסיסמה שלך.
   </div>
   <button id="loginBtn" class="btn-primary">כניסה עם Google</button>
+  <div class="login-divider">או</div>
+  <button id="otpOpenBtn" class="btn-secondary">כניסה עם מייל ארגוני (TFI)</button>
+  <form id="otpForm" class="hidden">
+    <label for="otpEmail">המייל הארגוני</label>
+    <input type="email" id="otpEmail" autocomplete="email" required>
+    <button type="submit" id="otpSendBtn" class="btn-primary">לשלוח לי קישור כניסה</button>
+  </form>
+  <div id="otpDone" class="notice ok hidden">שלחנו קישור כניסה למייל. פותחים אותו מהמכשיר הזה.</div>
+  <div id="otpError" class="notice hidden"></div>
 </section>
 
 <section id="screen-denied" class="screen">
   <h1>העמוד הזה מיועד לצוות המלווה</h1>
-  <p class="mt">הגעת למסך של המנטורים. השיעורים שלך מחכים לך בעמוד האישי שלך.</p>
+  <p class="mt">הגעת למסך של מובילי הבית. השיעורים שלך מחכים לך בעמוד האישי שלך.</p>
   <a id="deniedHome" href="index.html" class="btn-primary" style="display:flex; align-items:center; justify-content:center; text-decoration:none">לעמוד שלי</a>
 </section>
 
-<!-- ===== משטח המנטור: shell ===== -->
+<!-- ===== משטח מוביל הבית: shell ===== -->
 <section id="screen-list" class="screen">
   <div class="app-shell">
     <aside class="sidebar">

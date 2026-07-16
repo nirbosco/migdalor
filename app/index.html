@@ -61,7 +61,7 @@
 <!-- ===== כניסה ===== -->
 <section id="screen-login" class="screen">
   <h1>חותמטק</h1>
-  <p class="mt">כאן מצלמים את שיעורי התרגול ומשתפים אותם עם המנטור שלך. פשוט, בטוח, ופרטי.</p>
+  <p class="mt">כאן מצלמים את שיעורי התרגול ומשתפים אותם עם מוביל הבית שלך. פשוט, בטוח, ופרטי.</p>
   <div class="notice plain mt">
     עכשיו יופיע מסך של גוגל. בוחרים את החשבון שלך ולוחצים אישור.
     זה בטוח, ואנחנו לא רואים את הסיסמה שלך.
@@ -94,7 +94,7 @@
   <p class="mt">כאן מצלמים את שיעורי התרגול שלך.</p>
   <p class="mt">
     הסרטונים שלך פרטיים לגמרי: רק אתה רואה אותם, עד שאתה בוחר לשתף
-    את המנטור שלך. אף אחד אחר.
+    את מוביל הבית שלך. אף אחד אחר.
   </p>
   <button id="welcomeBtn" class="btn-primary">הבנתי, אפשר להמשיך</button>
 </section>
@@ -110,7 +110,7 @@
       <a class="nav-item active" id="navHome"><span class="ico"><svg><use href="#i-lighthouse"/></svg></span>הבית שלי</a>
       <a class="nav-item" id="navLessons"><span class="ico"><svg><use href="#i-calendar"/></svg></span>השיעורים שלי<span class="count" id="navLessonsCount">0</span></a>
       <!-- קישורי צוות: מוסתרים כברירת מחדל, נחשפים רק לבעלי תפקיד -->
-      <a id="mentorLink" href="mentor.html" class="nav-item hidden"><span class="ico"><svg><use href="#i-telescope"/></svg></span>המסך של המנטור</a>
+      <a id="mentorLink" href="mentor.html" class="nav-item hidden"><span class="ico"><svg><use href="#i-telescope"/></svg></span>המסך של מוביל הבית</a>
       <a id="adminLink" href="admin.html" class="nav-item hidden"><span class="ico"><svg><use href="#i-handshake"/></svg></span>פאנל ניהול</a>
       <div class="sidebar-foot">
         <a id="logoutLink" href="#" class="nav-item"><span class="ico"><svg><use href="#i-share"/></svg></span>התנתקות</a>
@@ -153,12 +153,12 @@
         <div class="stat-card">
           <div class="stat-label"><span class="ico"><svg><use href="#i-share"/></svg></span>שותפו</div>
           <div class="stat-value" id="homeStatShared">0</div>
-          <div class="stat-delta">נשלחו למנטור</div>
+          <div class="stat-delta">נשלחו למוביל הבית</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label"><span class="ico"><svg><use href="#i-eye"/></svg></span>נצפו</div>
-          <div class="stat-value" id="homeStatViewed">0</div>
-          <div class="stat-delta">המנטור צפה</div>
+          <div class="stat-label"><span class="ico"><svg><use href="#i-calendar"/></svg></span>השבוע</div>
+          <div class="stat-value" id="homeStatWeek">0</div>
+          <div class="stat-delta">שיעורים מהשבוע הזה</div>
         </div>
       </div>
 
@@ -326,10 +326,10 @@
   <label for="lessonTitle">שם השיעור</label>
   <input type="text" id="lessonTitle">
 
-  <h2 class="mt">לשלוח למנטור?</h2>
+  <h2 class="mt">לשלוח למוביל הבית?</h2>
   <div id="mentorList"></div>
   <div id="noMentors" class="notice plain hidden">
-    עוד לא שובצו לך מנטורים. הצוות משבץ, ואפשר בינתיים להעתיק קישור
+    עוד לא שובצו לך מובילי בית. הצוות משבץ, ואפשר בינתיים להעתיק קישור
     או לשלוח אחר כך.
   </div>
   <p class="small mt">

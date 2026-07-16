@@ -44,6 +44,14 @@
   .import-preview tr.row-bad td { background: var(--adom-rakh); }
   .import-preview .row-reason { color: var(--adom); font-size: 13.5px; font-weight: 500; white-space: normal; }
   .import-preview .trow-card.row-bad { border-inline-start: 4px solid var(--adom); }
+  /* מפריד "או" בין שתי דרכי הכניסה */
+  .login-divider {
+    display: flex; align-items: center; gap: 12px;
+    color: var(--afor); font-size: 16px; margin-top: 18px;
+  }
+  .login-divider::before, .login-divider::after {
+    content: ""; flex: 1; border-top: var(--kav);
+  }
 </style>
 </head>
 <body>
@@ -63,6 +71,15 @@
     עכשיו יופיע מסך של גוגל. בוחרים את החשבון שלך ולוחצים אישור.
   </div>
   <button id="loginBtn" class="btn-primary">כניסה עם Google</button>
+  <div class="login-divider">או</div>
+  <button id="otpOpenBtn" class="btn-secondary">כניסה עם מייל ארגוני (TFI)</button>
+  <form id="otpForm" class="hidden">
+    <label for="otpEmail">המייל הארגוני</label>
+    <input type="email" id="otpEmail" autocomplete="email" required>
+    <button type="submit" id="otpSendBtn" class="btn-primary">לשלוח לי קישור כניסה</button>
+  </form>
+  <div id="otpDone" class="notice ok hidden">שלחנו קישור כניסה למייל. פותחים אותו מהמכשיר הזה.</div>
+  <div id="otpError" class="notice hidden"></div>
 </section>
 
 <section id="screen-denied" class="screen">
@@ -86,7 +103,7 @@
       <a class="nav-item" onclick="openPanel('rolesPanel')"><span class="ico"><svg><use href="#i-handshake"/></svg></span>ניהול תפקידים</a>
       <div class="sidebar-foot">
         <a id="backToApp" href="index.html?stay=1" class="nav-item"><span class="ico"><svg><use href="#i-telescope"/></svg></span>למסך הצילום</a>
-        <a id="toMentor" href="mentor.html" class="nav-item"><span class="ico"><svg><use href="#i-eye"/></svg></span>למסך המנטור</a>
+        <a id="toMentor" href="mentor.html" class="nav-item"><span class="ico"><svg><use href="#i-eye"/></svg></span>למסך מוביל הבית</a>
         <a id="logoutLink" href="#" class="nav-item"><span class="ico"><svg><use href="#i-share"/></svg></span>התנתקות</a>
       </div>
     </aside>
@@ -116,7 +133,7 @@
         <div class="stat-card">
           <div class="stat-label"><span class="ico"><svg><use href="#i-share"/></svg></span>שיתופים</div>
           <div class="stat-value" id="statShares">—</div>
-          <div class="stat-delta">שיעורים ששותפו למנטור</div>
+          <div class="stat-delta">שיעורים ששותפו למוביל הבית</div>
         </div>
         <div class="stat-card">
           <div class="stat-label"><span class="ico"><svg><use href="#i-eye"/></svg></span>אחוז נצפו</div>
@@ -214,10 +231,10 @@
       <details class="paste-details">
         <summary>או להדביק שורות מהגיליון</summary>
         <p class="small fine">
-          סדר העמודות: מייל חותמיסט, שם חותמיסט, מייל מנטור, שם מנטור, סוג שיבוץ (לא חובה).
+          סדר העמודות: מייל חותמיסט, שם חותמיסט, מייל מוביל בית, שם מוביל בית, סוג שיבוץ (לא חובה).
           מפרידים בפסיק או בטאב (הדבקה מאקסל עובדת כמו שהיא).
         </p>
-        <textarea id="csvBox" placeholder="trainee@example.com&#9;משה לוי&#9;mentor@example.com&#9;אהוד כהן&#9;מורה מלווה"></textarea>
+        <textarea id="csvBox" placeholder="trainee@example.com&#9;משה לוי&#9;mentor@example.com&#9;אהוד כהן&#9;מוביל בית"></textarea>
         <button id="csvPreviewBtn" class="btn-secondary">לבדוק לפני טעינה</button>
       </details>
     </div>
@@ -231,7 +248,7 @@
         <div class="table-card import-preview">
           <div class="dtable-scroll">
             <table class="dtable">
-              <thead><tr><th>חותמיסט</th><th>מנטור</th><th>סוג</th><th>בדיקה</th></tr></thead>
+              <thead><tr><th>חותמיסט</th><th>מוביל בית</th><th>סוג</th><th>בדיקה</th></tr></thead>
               <tbody id="previewRows"></tbody>
             </table>
           </div>
@@ -258,12 +275,12 @@
       <input type="email" id="mTraineeEmail" required>
       <label for="mTraineeName">שם החותמיסט</label>
       <input type="text" id="mTraineeName">
-      <label for="mMentorEmail">מייל המנטור</label>
+      <label for="mMentorEmail">מייל מוביל הבית</label>
       <input type="email" id="mMentorEmail" required>
-      <label for="mMentorName">שם המנטור</label>
+      <label for="mMentorName">שם מוביל הבית</label>
       <input type="text" id="mMentorName">
       <label for="mType">סוג השיבוץ (לא חובה)</label>
-      <input type="text" id="mType" placeholder="מורה מלווה / מוביל בית">
+      <input type="text" id="mType" placeholder="מוביל בית / מוביל דעת">
       <button type="submit" class="btn-primary">לשבץ</button>
     </form>
     <div id="manualDone" class="notice ok hidden"></div>
@@ -278,7 +295,7 @@
     <button class="side-panel-close" onclick="closePanel()" aria-label="סגירה">×</button>
   </div>
   <div class="side-panel-body">
-    <p class="small">הוספת אדם עם תפקיד, או שינוי תפקיד של מי שכבר ברשימה. חותמיסט מצלם ומשתף, מנטור צופה, אדמין מנהל.</p>
+    <p class="small">הוספת אדם עם תפקיד, או שינוי תפקיד של מי שכבר ברשימה. חותמיסט מצלם ומשתף, מוביל בית צופה, אדמין מנהל.</p>
 
     <form id="roleForm">
       <label for="roleEmail">מייל</label>
@@ -288,7 +305,7 @@
       <label for="roleSelect">תפקיד</label>
       <select id="roleSelect">
         <option value="trainee">חותמיסט</option>
-        <option value="mentor">מנטור</option>
+        <option value="mentor">מוביל בית</option>
         <option value="admin">אדמין</option>
       </select>
       <button type="submit" class="btn-primary">להוסיף / לעדכן</button>
@@ -297,7 +314,7 @@
     <div id="roleError" class="notice hidden"></div>
 
     <div class="notice plain mt">
-      כדי שאדמין או מנטור חדש יוכל להתחבר עם גוגל בשלב הבדיקה, יש להוסיף גם את
+      כדי שאדמין או מוביל בית חדש יוכל להתחבר עם גוגל בשלב הבדיקה, יש להוסיף גם את
       כתובת המייל שלו כמשתמש בדיקה בהגדרות (הצוות הטכני מטפל).
     </div>
 

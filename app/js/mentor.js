@@ -1,9 +1,9 @@
-// חותמטק: המסך של המנטור. כל מה ששותף איתי, מקובץ לפי חותמיסט,
+// חותמטק: המסך של מוביל הבית. כל מה ששותף איתי, מקובץ לפי חותמיסט,
 // ממוין מהחדש לישן, עם סימון "חדש" על מה שטרם נצפה.
 // מעוצב כמשטח דשבורדי: shell + טבלה לכל חותמיסט + גרסת מובייל.
 
 import { DEV, devHref } from "./config.js";
-import { supabase, getUser, signInWithGoogle, getMyProfile, listSharedWithMe, firstName, signOut } from "./supa.js";
+import { supabase, getUser, signInWithGoogle, signInWithEmailOtp, getMyProfile, listSharedWithMe, firstName, signOut } from "./supa.js";
 import { $, show, goScreen, humanDate, humanMinutes, watchOnline } from "./ui.js";
 import { initDashShell } from "./dash-shell.js";
 
@@ -158,7 +158,42 @@ async function renderList() {
   }
 }
 
+// כניסה במייל ארגוני (TFI): קישור קסם למייל. שגיאות מוסברות בעברית.
+function otpErrorText(err) {
+  const msg = String((err && err.message) || err || "");
+  if ((err && err.status === 429) || /rate ?limit|too many|429/i.test(msg))
+    return "יותר מדי ניסיונות, המתינו כמה דקות ומנסים שוב.";
+  if (/invalid|valid email|unable to validate/i.test(msg))
+    return "כתובת המייל לא נראית תקינה. בודקים אותה ומנסים שוב.";
+  return "שליחת הקישור לא הצליחה כרגע. מנסים שוב בעוד רגע.";
+}
+
+function wireEmailOtp() {
+  const open = $("otpOpenBtn");
+  if (!open) return;
+  open.addEventListener("click", () => {
+    show(open, false);
+    show($("otpForm"), true);
+    $("otpEmail").focus();
+  });
+  $("otpForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    show($("otpDone"), false);
+    show($("otpError"), false);
+    $("otpSendBtn").disabled = true;
+    try {
+      await signInWithEmailOtp($("otpEmail").value);
+      show($("otpDone"), true);
+    } catch (err) {
+      $("otpError").textContent = otpErrorText(err);
+      show($("otpError"), true);
+    }
+    $("otpSendBtn").disabled = false;
+  });
+}
+
 $("loginBtn").addEventListener("click", signInWithGoogle);
+wireEmailOtp();
 $("listRetry").addEventListener("click", renderList);
 if (!DEV) {
   supabase.auth.onAuthStateChange((event) => {

@@ -3,7 +3,7 @@
 
 import { DEV, devHref, WORKER_URL, CONTACT_NAME, CONTACT_PHONE } from "./config.js";
 import { supabase, getUser, getAccessToken, signInWithGoogle, getMyProfile } from "./supa.js";
-import { $, show, goScreen, humanDate, humanMinutes, atMinute, watchOnline, copyText } from "./ui.js";
+import { $, show, goScreen, humanDate, humanMinutes, atMinute, watchOnline } from "./ui.js";
 import {
   analysisEnabled,
   requestAnalysis,
@@ -53,7 +53,7 @@ async function openLesson() {
     showPlayer("");
     $("playerNote").textContent = "מצב תצוגה: אין כאן סרטון אמיתי.";
     show($("myTraineesBtn"), true);
-    // בהדגמה: ?rec= מדמה חותמיסט, ?token= מדמה מנטור
+    // בהדגמה: ?rec= מדמה חותמיסט, ?token= מדמה מוביל בית
     initAiSection(ownerMode ? "trainee" : "mentor");
     return;
   }
@@ -116,7 +116,7 @@ async function openLesson() {
     return;
   }
 
-  // כפתור "כל החותמיסטים שלי" למנטורים ואדמינים, ולהם גם הניתוח העמוק
+  // כפתור "כל החותמיסטים שלי" למובילי בית ואדמינים, ולהם גם הניתוח העמוק
   try {
     const profile = await getMyProfile();
     if (profile && (profile.role === "mentor" || profile.role === "admin")) {
@@ -147,13 +147,7 @@ async function initAiSection(audience) {
     const panel = $("aiPanel");
     if (audience === "mentor") {
       const rep = await getMentorReport(meta.recordingId);
-      panel.innerHTML = renderMentorReport((rep && rep.report) || {}, rep && rep.mentor_note_draft);
-      const copyBtn = panel.querySelector("#copyDraftBtn");
-      if (copyBtn)
-        copyBtn.onclick = async () => {
-          await copyText(panel.querySelector("#mentorDraft").value);
-          show(panel.querySelector("#copyDraftDone"), true);
-        };
+      panel.innerHTML = renderMentorReport((rep && rep.report) || {});
     } else {
       panel.innerHTML = renderTraineeFeedback((row && row.trainee_feedback) || {});
     }

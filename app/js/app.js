@@ -148,10 +148,8 @@ function lessonStatus(l) {
       `ו${CONTACT_NAME} יחזור אליך לעזור. ` + humanContact(), cls: "tag tag-stuck" };
   if (l.status === "uploading")
     return { text: "ממתין להעלאה", full: "ממתין להשלמת ההעלאה.", cls: "tag" };
-  if (l.viewedBy.length)
-    return { text: "נצפה", full: `נשלח ל${joinNames(l.sharedWith)}, נצפה`, cls: "tag tag-ok" };
   if (l.sharedWith.length)
-    return { text: "שותף", full: `נשלח ל${joinNames(l.sharedWith)}`, cls: "tag" };
+    return { text: "שותף", full: `נשלח ל${joinNames(l.sharedWith)}`, cls: "tag tag-ok" };
   return { text: "לא שותף", full: "עדיין לא שותף", cls: "tag" };
 }
 
@@ -180,12 +178,15 @@ async function renderLessons() {
     return;
   }
 
-  // רצועת סיכום קצרה
+  // רצועת סיכום קצרה. "השבוע" סופר מתחילת השבוע (יום ראשון).
   const shared = lessons.filter((l) => l.sharedWith && l.sharedWith.length).length;
-  const viewed = lessons.filter((l) => l.viewedBy && l.viewedBy.length).length;
+  const weekStart = new Date();
+  weekStart.setHours(0, 0, 0, 0);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const thisWeek = lessons.filter((l) => new Date(l.created_at) >= weekStart).length;
   $("homeStatLessons").textContent = lessons.length;
   $("homeStatShared").textContent = shared;
-  $("homeStatViewed").textContent = viewed;
+  $("homeStatWeek").textContent = thisWeek;
   $("homeStats").hidden = false;
   show($("homeStats"), true);
 
@@ -256,7 +257,6 @@ async function renderLessons() {
       note.className = "status";
       note.style.marginTop = "8px";
       note.textContent = st.full;
-      if (l.viewedBy.length) note.classList.add("viewed");
       card.appendChild(note);
     }
     if (ready) {
@@ -913,8 +913,7 @@ async function sendToMentors(emails) {
   }
   current.token = token;
   $("shareDone").textContent =
-    `הקישור מוכן ל${joinNames(names)}. שולחים אותו בוואטסאפ בכפתור למטה, ` +
-    `וכשיצפו בשיעור תראה את זה כאן.`;
+    `הקישור מוכן ל${joinNames(names)}. שולחים אותו בוואטסאפ בכפתור למטה.`;
   show($("shareDone"), true);
 
   const title = $("lessonTitle").value.trim() || current.title;

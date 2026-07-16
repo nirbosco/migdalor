@@ -38,7 +38,6 @@ const DEV_RECORDINGS = [
     created_at: "2026-07-05T10:00:00Z",
     status: "ready",
     sharedWith: ["אהוד (הדגמה)"],
-    viewedBy: ["אהוד (הדגמה)"],
     token: "dev-token-1",
   },
   {
@@ -48,7 +47,6 @@ const DEV_RECORDINGS = [
     created_at: "2026-07-06T09:00:00Z",
     status: "ready",
     sharedWith: [],
-    viewedBy: [],
     token: null,
   },
 ];
@@ -73,6 +71,18 @@ export async function signInWithGoogle() {
     provider: "google",
     options: { redirectTo },
   });
+}
+
+// כניסה עם קישור קסם למייל (OTP), למסכי הצוות בלבד: מייל ארגוני של TFI.
+// הקישור מחזיר לאותו עמוד בדיוק, ו-onAuthStateChange הקיים קולט את הכניסה.
+export async function signInWithEmailOtp(email) {
+  if (DEV) return true;
+  const { error } = await supabase.auth.signInWithOtp({
+    email: (email || "").trim().toLowerCase(),
+    options: { emailRedirectTo: location.href },
+  });
+  if (error) throw error;
+  return true;
 }
 
 export async function signOut() {
@@ -147,7 +157,8 @@ export async function listMyMentors() {
   }));
 }
 
-// ההקלטות שלי, עם מי שותפו ומי צפה, מוכן לשורת הסטטוס האנושית.
+// ההקלטות שלי ועם מי שותפו, מוכן לשורת הסטטוס האנושית.
+// בכוונה לא שואלים מי צפה: החותמיסט לא נחשף לנתוני צפייה (החלטת 16.7).
 export async function listMyRecordings() {
   if (DEV) return DEV_RECORDINGS;
   const user = await getUser();
@@ -165,16 +176,7 @@ export async function listMyRecordings() {
     .select("id,recording_id,token,shared_with_email,revoked")
     .in("recording_id", ids)
     .eq("revoked", false);
-  const shareIds = (shares || []).map((s) => s.id);
-  let views = [];
-  if (shareIds.length) {
-    const { data: v } = await supabase
-      .from("migdalor_views")
-      .select("share_id,viewer_email")
-      .in("share_id", shareIds);
-    views = v || [];
-  }
-  // שמות המנטורים מרשימת השיבוץ (מותר לי לראות את המנטורים שלי)
+  // שמות מובילי הבית מרשימת השיבוץ (מותר לי לראות את מובילי הבית שלי)
   const emails = [
     ...new Set((shares || []).map((s) => s.shared_with_email).filter(Boolean)),
   ];
@@ -189,20 +191,12 @@ export async function listMyRecordings() {
   return recs.map((r) => {
     const myShares = (shares || []).filter((s) => s.recording_id === r.id);
     const recipients = myShares.filter((s) => s.shared_with_email);
-    const viewedEmails = new Set(
-      views
-        .filter((v) => myShares.some((s) => s.id === v.share_id))
-        .map((v) => v.viewer_email)
-    );
     return {
       ...r,
       token: myShares.length ? myShares[0].token : null,
       sharedWith: recipients.map(
         (s) => names[s.shared_with_email] || s.shared_with_email
       ),
-      viewedBy: recipients
-        .filter((s) => viewedEmails.has(s.shared_with_email))
-        .map((s) => names[s.shared_with_email] || s.shared_with_email),
     };
   });
 }
@@ -545,8 +539,8 @@ export async function removeFromRoster(email) {
 // במצב תצוגה מדמים משיכה מוצלחת בלי רשת: כותרות התבנית, שתי שורות
 // תקינות ושורה אחת שבורה, כדי שגם מסך הבדיקה ייראה בפעולה.
 const DEV_SHEET_CSV = [
-  "מייל חותמיסט,שם חותמיסט,מייל מנטור,שם מנטור,סוג שיבוץ (לא חובה)",
-  'moshe.demo@example.com,משה (הדגמה),ehud.demo@example.com,אהוד (הדגמה),"מורה מלווה, כיתה ז"',
+  "מייל חותמיסט,שם חותמיסט,מייל מוביל בית,שם מוביל בית,סוג שיבוץ (לא חובה)",
+  'moshe.demo@example.com,משה (הדגמה),ehud.demo@example.com,אהוד (הדגמה),"מוביל בית, כיתה ז"',
   "sara.demo@example.com,שרה (הדגמה),ruth.demo@example.com,רות (הדגמה),",
   "בלי-מייל,יעקב (הדגמה),ehud.demo@example.com,אהוד (הדגמה),",
 ].join("\n");

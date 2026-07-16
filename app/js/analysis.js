@@ -1,5 +1,5 @@
 // חותמטק: הניתוח החכם בצד הלקוח (פעימה 2).
-// שני תוצרים מאותו צינור: משוב אמפתי לחותמיסט, ניתוח אבחוני עמוק למנטור.
+// שני תוצרים מאותו צינור: משוב אמפתי לחותמיסט, ניתוח אבחוני עמוק למוביל הבית.
 // הקליינט רק מבקש ומציג; כל ההרשאות נאכפות בשרת (RLS + שירות הניתוח).
 
 import { ANALYSIS_URL, DEV } from "./config.js";
@@ -48,10 +48,6 @@ const DEV_REPORT = {
   talking_points: ["איך נדע מי הבין? לחשוב יחד על טקס סיום קצר"],
 };
 
-const DEV_DRAFT =
-  "שלום משה, צפיתי בשיעור שלך ונהניתי. הדיון בזוגות שיזמת בדקה 07:40 היה הרגע החזק של השיעור. " +
-  "אני מציע שנחשוב יחד איך מסיימים שיעור: רגע קצר של בדיקת הבנה ייתן לך תמונה של מי הבין ומה נשאר פתוח.";
-
 // ---------- בקשה ומעקב ----------
 
 export async function requestAnalysis(recordingId) {
@@ -77,10 +73,10 @@ export async function getAnalysis(recordingId) {
 }
 
 export async function getMentorReport(recordingId) {
-  if (DEV) return { report: DEV_REPORT, mentor_note_draft: DEV_DRAFT };
+  if (DEV) return { report: DEV_REPORT };
   const { data } = await supabase
     .from("migdalor_mentor_reports")
-    .select("report,mentor_note_draft")
+    .select("report")
     .eq("recording_id", recordingId)
     .maybeSingle();
   return data;
@@ -146,7 +142,7 @@ export function renderTraineeFeedback(fb) {
 
 const LEVEL_CLS = { "חזק": "strong", "בינוני": "mid", "חלש": "weak", "לא נצפה": "none" };
 
-export function renderMentorReport(rep, draft) {
+export function renderMentorReport(rep) {
   const spots = (rep.spotlights || [])
     .map((s) => {
       const ev = (s.evidence || [])
@@ -165,14 +161,9 @@ export function renderMentorReport(rep, draft) {
   const list = (arr) => (arr || []).map((x) => `<li>${esc(x)}</li>`).join("");
   return `<div class="ai-card"><h3>תמונת מצב</h3><p>${esc(rep.summary || "")}</p></div>
     ${spots}
-    <div class="ai-card"><h3>סיכום למנטור</h3>
+    <div class="ai-card"><h3>סיכום למוביל הבית</h3>
       <p><strong>חוזקות מובילות:</strong></p><ul>${list(rep.top_strengths)}</ul>
       <p><strong>שיפורים מובילים:</strong></p><ul>${list(rep.top_improvements)}</ul>
       <p><strong>לשיחה עם החותמיסט:</strong></p><ul>${list(rep.talking_points)}</ul></div>
-    <div class="ai-card"><h3>טיוטת משוב לחותמיסט</h3>
-      <p class="small">זו טיוטה בלבד. ערכו אותה בקול שלכם לפני שליחה. שום דבר לא נשלח אוטומטית.</p>
-      <textarea id="mentorDraft">${esc(draft || "")}</textarea>
-      <button id="copyDraftBtn" class="btn-secondary" style="margin-top:10px">העתקת הטיוטה</button>
-      <span id="copyDraftDone" class="small hidden"> הועתק ✓</span></div>
     <p class="small mt">הניתוח הופק אוטומטית מתוך תמלול בלבד (בלי וידאו), לפי מודל המגדלור. שיקול הדעת שלך מעליו.</p>`;
 }
