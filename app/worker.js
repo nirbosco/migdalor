@@ -28,7 +28,7 @@
 
 const CORS = {
   "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET, PUT, POST, OPTIONS",
+  "access-control-allow-methods": "GET, PUT, POST, DELETE, OPTIONS",
   "access-control-allow-headers": "content-type, authorization, range",
   "access-control-expose-headers": "content-range, content-length, accept-ranges, etag",
   "access-control-max-age": "86400",
@@ -300,6 +300,33 @@ async function handleMeta(request, url, env) {
   });
 }
 
+// מחיקת הקלטה: הפונקציה בשרת מוודאת בעלים/אדמין, מוחקת את כל הנגזרות
+// ומחזירה את מפתח האחסון; כאן מוחקים גם את הקובץ מ-R2.
+async function handleDelete(request, url, env, recordingId) {
+  const { user, jwt } = await getAuth(request, url, env);
+  if (!user) return deny("נדרשת כניסה", 401);
+  // קריאה ישירה (לא דרך העטיפה) כדי לקרוא את הודעת השגיאה מהמסד
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/migdalor_delete_recording`, {
+    method: "POST",
+    headers: {
+      apikey: env.SUPABASE_ANON,
+      authorization: `Bearer ${jwt}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ p_id: recordingId }),
+  });
+  if (!res.ok) {
+    let msg = "";
+    try { msg = (await res.json()).message || ""; } catch (e) { /* גוף לא צפוי */ }
+    if (msg.includes("לא נמצאה")) return deny("ההקלטה לא נמצאה", 404);
+    if (msg.includes("אין הרשאה")) return deny();
+    return json({ error: msg || "המחיקה נכשלה" }, 500);
+  }
+  const key = await res.json();
+  if (key) await env.BUCKET.delete(key);
+  return json({ ok: true });
+}
+
 // ייבוא שיבוצים מ-Google Sheets: פרוקסי ל-CSV הציבורי של הגיליון.
 // הדפדפן לא יכול למשוך את זה ישירות (אין CORS אצל גוגל), ולכן עוברים כאן.
 // מותר רק לאדמין, ורק מ-docs.google.com.
@@ -391,6 +418,9 @@ export default {
       const mine = path.match(/^\/mine\/([0-9a-f-]+)$/i);
       if (mine && request.method === "GET") {
         return await handleOwnerStream(request, url, env, mine[1]);
+      }
+      if (mine && request.method === "DELETE") {
+        return await handleDelete(request, url, env, mine[1]);
       }
       if (path === "/mine-meta" && request.method === "GET") {
         return await handleOwnerMeta(request, url, env);

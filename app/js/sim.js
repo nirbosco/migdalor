@@ -11,8 +11,7 @@ import {
   signInWithGoogle,
   signOut,
   getMyProfile,
-  firstName,
-} from "./supa.js";
+  firstName, deleteRecording } from "./supa.js";
 import { $, show, goScreen, humanDate, humanMinutes, clock, watchOnline } from "./ui.js";
 import { createRecorder } from "./recorder.js";
 import { createUploader, getUploadState } from "./upload.js";
@@ -296,6 +295,25 @@ async function renderList() {
       tag.textContent = s.status === "failed" ? "ההעלאה נכשלה" : "בהעלאה";
       card.appendChild(tag);
     }
+    // מחיקה: זמינה תמיד (גם להעלאה שנכשלה), עם אישור
+    const delBtn = document.createElement("button");
+    delBtn.className = "row-action row-action-danger";
+    delBtn.textContent = "מחיקה";
+    delBtn.addEventListener("click", async () => {
+      const name = s.title || "הסימולציה";
+      if (!confirm(`למחוק את "${name}"? המחיקה לצמיתות, כולל הסרטון והקטעים המסומנים.`)) return;
+      delBtn.disabled = true;
+      delBtn.textContent = "מוחק...";
+      try {
+        await deleteRecording(s.id);
+        await renderList();
+      } catch (e) {
+        alert("המחיקה לא הצליחה: " + (e.message || e));
+        delBtn.disabled = false;
+        delBtn.textContent = "מחיקה";
+      }
+    });
+    card.appendChild(delBtn);
     $("simList").appendChild(card);
   }
 }

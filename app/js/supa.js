@@ -75,6 +75,19 @@ export async function signInWithGoogle() {
 
 // כניסה עם קישור קסם למייל (OTP), למסכי הצוות בלבד: מייל ארגוני של TFI.
 // הקישור מחזיר לאותו עמוד בדיוק, ו-onAuthStateChange הקיים קולט את הכניסה.
+// מחיקת הקלטה (בעלים או אדמין): המסד + הקובץ בענן, דרך ה-Worker.
+export async function deleteRecording(recordingId) {
+  if (DEV) return { ok: true };
+  const { WORKER_URL } = await import("./config.js");
+  const jwt = await getAccessToken();
+  const res = await fetch(WORKER_URL + "/mine/" + encodeURIComponent(recordingId), {
+    method: "DELETE",
+    headers: { authorization: "Bearer " + jwt },
+  });
+  if (!res.ok) throw new Error((await res.text()) || "המחיקה נכשלה");
+  return { ok: true };
+}
+
 export async function signInWithEmailOtp(email) {
   if (DEV) return true;
   const { error } = await supabase.auth.signInWithOtp({

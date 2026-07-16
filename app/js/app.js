@@ -16,6 +16,7 @@ import {
   markRecordingFailed,
   getOrCreateToken,
   shareWithMentors,
+  deleteRecording,
   firstName,
   signOut,
 } from "./supa.js";
@@ -224,7 +225,11 @@ async function renderLessons() {
       shareBtn.className = "row-action row-action-ghost";
       shareBtn.textContent = "שיתוף";
       shareBtn.addEventListener("click", share);
-      tdAction.append(watchBtn, shareBtn);
+      const delBtn = document.createElement("button");
+      delBtn.className = "row-action row-action-danger";
+      delBtn.textContent = "מחיקה";
+      delBtn.addEventListener("click", (e) => { e.stopPropagation(); deleteLesson(l, delBtn); });
+      tdAction.append(watchBtn, shareBtn, delBtn);
     }
     tr.append(tdTitle, tdDate, tdDur, tdStatus, tdAction);
     if (ready) { tr.style.cursor = "pointer"; tr.addEventListener("click", watch); }
@@ -270,12 +275,30 @@ async function renderLessons() {
       shareBtn.className = "row-action row-action-ghost";
       shareBtn.textContent = "שיתוף";
       shareBtn.addEventListener("click", share);
-      actions.append(watchBtn, shareBtn);
+      const delBtn = document.createElement("button");
+      delBtn.className = "row-action row-action-danger";
+      delBtn.textContent = "מחיקה";
+      delBtn.addEventListener("click", (e) => { e.stopPropagation(); deleteLesson(l, delBtn); });
+      actions.append(watchBtn, shareBtn, delBtn);
       card.appendChild(actions);
       card.style.cursor = "pointer";
       card.addEventListener("click", watch);
     }
     $("lessonsCards").appendChild(card);
+  }
+}
+
+// מחיקת שיעור: אישור כפול בעברית פשוטה, ואז מחיקה מלאה (מסד + ענן)
+async function deleteLesson(l, btn) {
+  const name = l.title || "השיעור";
+  if (!confirm(`למחוק את "${name}"? המחיקה לצמיתות: הסרטון יימחק גם מהענן, וגם אצל מוביל הבית אם שותף.`)) return;
+  if (btn) { btn.disabled = true; btn.textContent = "מוחק..."; }
+  try {
+    await deleteRecording(l.id);
+    await renderLessons();
+  } catch (e) {
+    alert("המחיקה לא הצליחה: " + (e.message || e));
+    if (btn) { btn.disabled = false; btn.textContent = "מחיקה"; }
   }
 }
 
