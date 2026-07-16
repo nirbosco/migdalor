@@ -166,6 +166,7 @@ export async function listMyRecordings() {
     .from("migdalor_recordings")
     .select("id,title,duration_s,created_at,status")
     .eq("owner_id", user.id)
+    .eq("kind", "lesson")
     .order("created_at", { ascending: false });
   if (error) throw error;
   if (!recs.length) return [];

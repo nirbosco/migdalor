@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>חותמטק: מרכז הסימולציות</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="brand.css">
+<link rel="stylesheet" href="brand-dashboard.css">
+<style>
+  /* מרכז הסימולציות: עמוד צוות ממורכז. מובייל קודם (הצילום קורה מטלפון),
+     ומסך ההקרנה נפתח לרוחב כשמתחברים למקרן. */
+
+  /* ---- רשימת הסימולציות ---- */
+  .sim-row { display: flex; align-items: center; gap: 14px; }
+  .sim-row .sim-info { flex: 1; min-width: 0; }
+  .sim-row .title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sim-row .row-action {
+    flex: none; font-size: 17px; padding: 10px 22px;
+    border-radius: var(--pill); background: var(--kachol); color: var(--lavan);
+  }
+  .sim-row .row-action:hover { background: var(--kachol-kehe); }
+  .sim-row .row-action:disabled { background: var(--reka-alt); color: var(--afor); cursor: default; }
+
+  /* ---- מסך ההקרנה: במה רחבה וכהה ---- */
+  body.stage { max-width: 1100px; background: #071033; color: var(--lavan); }
+  body.stage h1 { color: var(--lavan); }
+  body.stage .small { color: #aeb6d6; }
+  body.stage .card { background: #0f1a44; border-color: #23305f; color: var(--lavan); box-shadow: 0 6px 20px rgba(0,0,0,.35); }
+  body.stage .video-wrap { border: 1.5px solid var(--kachol); box-shadow: 0 0 0 5px rgba(0,70,255,.18); }
+  body.stage .btn-secondary { background: transparent; border-color: var(--tchelet); color: var(--tchelet); }
+  body.stage .btn-secondary:hover { background: rgba(15,180,245,.12); }
+  body.stage .btn-quiet { color: #aeb6d6; }
+  body.stage .btn-quiet:hover { color: var(--tchelet); }
+  body.stage input[type="text"] { background: #0f1a44; border-color: #23305f; color: var(--lavan); }
+  body.stage :focus-visible { outline-color: var(--tchelet); }
+
+  .stage-top { display: flex; align-items: center; gap: 12px; margin-top: 4px; flex-wrap: wrap; }
+  .stage-top h1 { flex: 1; min-width: 200px; font-size: 24px; }
+  .stage-top .btn-secondary, .stage-top .btn-quiet {
+    display: inline-block; width: auto; min-height: 44px;
+    padding: 8px 20px; margin-top: 0; font-size: 17px;
+  }
+
+  /* ---- קטעים מסומנים ---- */
+  .seg-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--lavan); border: var(--kav); border-radius: var(--radius-katan);
+    padding: 10px 14px; margin-top: 10px; box-shadow: var(--tsel-rakh);
+  }
+  body.stage .seg-row { background: #0f1a44; border-color: #23305f; }
+  .seg-play {
+    flex: 1; display: flex; align-items: center; gap: 12px;
+    background: transparent; border: none; color: inherit;
+    font-size: 19px; text-align: right; cursor: pointer; padding: 4px 0;
+    font-family: inherit; min-width: 0;
+  }
+  .seg-play .times {
+    flex: none; direction: ltr; font-variant-numeric: tabular-nums;
+    font-weight: 600; color: var(--kachol);
+    background: #eef3ff; border-radius: var(--pill); padding: 3px 12px; font-size: 16px;
+  }
+  body.stage .seg-play .times { background: rgba(0,70,255,.25); color: var(--tchelet); }
+  .seg-play .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .seg-row.playing { border-color: var(--kachol); }
+  body.stage .seg-row.playing { border-color: var(--tchelet); }
+  .seg-del {
+    flex: none; width: 38px; height: 38px; border-radius: var(--radius-katan);
+    border: var(--kav); background: transparent; color: var(--afor);
+    font-size: 20px; line-height: 1;
+  }
+  .seg-del:hover { color: var(--adom); border-color: var(--adom); }
+  body.stage .seg-del { border-color: #23305f; color: #aeb6d6; }
+
+  /* כפתורי הסימון בזמן צפייה */
+  .mark-controls { display: flex; gap: 10px; flex-wrap: wrap; }
+  .mark-controls .btn-secondary {
+    flex: 1; min-width: 150px; margin-top: 0; min-height: 50px; font-size: 18px;
+  }
+  #markPending { margin-top: 12px; }
+  #markPending .times-line { font-size: 19px; font-weight: 600; direction: rtl; }
+  #markPending .mark-save-row { display: flex; gap: 10px; margin-top: 10px; }
+  #markPending .mark-save-row .btn-primary,
+  #markPending .mark-save-row .btn-quiet { margin-top: 0; min-height: 50px; font-size: 18px; flex: 1; }
+
+  /* ---- מצב הקרנה: רק הנגן והקטעים, לחיבור למקרן ---- */
+  body.projecting { max-width: none; padding: 12px 16px 32px; }
+  body.projecting .np { display: none !important; }
+  body.projecting .video-wrap { margin-top: 0; }
+  .proj-only { display: none !important; }
+  body.projecting .proj-only {
+    display: inline-block !important; width: auto; min-height: 40px;
+    padding: 6px 18px; font-size: 15px; margin-top: 10px;
+  }
+  body.projecting .seg-row { padding: 6px 12px; margin-top: 8px; }
+  body.projecting #segList { display: flex; flex-wrap: wrap; gap: 8px; }
+  body.projecting .seg-row { margin-top: 0; }
+  body.projecting .seg-del { display: none; }
+
+  /* מד קול חי במסך ההכנה */
+  #prepMeter .mic-meter-fill { transition: width .35s ease; }
+
+  /* קרן הזוהר של הכפתור הראשי נשארת בתוך העמודה הצרה (בלי גלילה אופקית במובייל) */
+  #newSimBtn.beam::before { inset: -26px 0 -14px; }
+</style>
+</head>
+<body>
+
+<div class="dev-banner">מצב תצוגה: נתוני הדגמה בלבד, שום דבר לא נשלח לשרת</div>
+<div class="offline-bar">אין אינטרנט כרגע. אפשר לצלם כרגיל, והסימולציה תעלה כשיחזור החיבור.</div>
+
+<!-- ===== טעינה ===== -->
+<section id="screen-boot" class="screen active">
+  <h1>מרכז הסימולציות</h1>
+  <p class="small mt">רק רגע...</p>
+</section>
+
+<!-- ===== כניסה ===== -->
+<section id="screen-login" class="screen">
+  <h1>מרכז הסימולציות</h1>
+  <p class="mt">כדי לשמור על הפרטיות של המורים, הכניסה היא עם חשבון גוגל.</p>
+  <div class="notice plain mt">
+    עכשיו יופיע מסך של גוגל. בוחרים את החשבון שלך ולוחצים אישור.
+    זה בטוח, ואנחנו לא רואים את הסיסמה שלך.
+  </div>
+  <button id="loginBtn" class="btn-primary">כניסה עם Google</button>
+  <div id="loginError" class="notice warn mt hidden"></div>
+</section>
+
+<!-- ===== העמוד מיועד לצוות ===== -->
+<section id="screen-denied" class="screen">
+  <h1>העמוד הזה מיועד לצוות</h1>
+  <p class="mt">מרכז הסימולציות פתוח למובילי הבית ולצוות ההכשרה. השיעורים שלך מחכים לך בעמוד האישי.</p>
+  <a id="deniedHome" href="index.html" class="btn-primary" style="display:flex; align-items:center; justify-content:center; text-decoration:none">לעמוד שלי</a>
+</section>
+
+<!-- ===== בית: הסימולציות שלי ===== -->
+<section id="screen-home" class="screen">
+  <h1 class="screen-title">מרכז הסימולציות</h1>
+  <p class="small mt">מצלמים סימולציה, מסמנים קטעים, ומקרינים לקבוצה תוך דקות.</p>
+
+  <!-- העלאה שממתינה מהפעם הקודמת -->
+  <div id="pendingCard" class="card hidden">
+    <div class="title" id="pendingTitle"></div>
+    <div class="status" id="pendingStatus"></div>
+    <div class="progress-track hidden" id="pendingTrack"><div class="progress-fill" id="pendingFill"></div></div>
+    <button id="resumeUploadBtn" class="btn-primary">להמשיך את ההעלאה</button>
+  </div>
+
+  <button id="newSimBtn" class="btn-hero beam">לצלם סימולציה חדשה</button>
+  <button id="galleryBtn" class="btn-secondary">להעלות סרטון מהגלריה</button>
+  <input type="file" id="galleryFile" accept="video/*" class="hidden">
+
+  <div class="chip" id="listChip">הסימולציות שלי</div>
+  <div id="listLoading">
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+  </div>
+  <div id="listError" class="notice hidden">
+    לא הצלחנו להביא את הרשימה, זו רק בעיית תקשורת רגעית.
+    <button id="listRetry" class="btn-secondary">לנסות שוב</button>
+  </div>
+  <div id="listEmpty" class="empty-state hidden">
+    עוד אין סימולציות. הכפתור הכחול למעלה מתחיל את הראשונה.
+  </div>
+  <div id="simList"></div>
+
+  <button class="btn-quiet" id="backAppBtn">חזרה לחותמטק</button>
+  <button class="btn-quiet" id="logoutBtn">התנתקות</button>
+</section>
+
+<!-- ===== הכנה לצילום ===== -->
+<section id="screen-prep" class="screen">
+  <h1>בדיקה קצרה ומתחילים</h1>
+  <div id="prepAsk">
+    <p class="mt">עוד רגע הטלפון ישאל אם מותר לנו להשתמש במצלמה. לוחצים "אפשר".</p>
+    <button id="openCameraBtn" class="btn-primary">לפתוח את המצלמה</button>
+  </div>
+  <div id="prepDenied" class="hidden">
+    <div class="notice">הטלפון לא נתן לנו לפתוח את המצלמה. זה תיקון של חצי דקה.</div>
+    <p class="mt" id="deniedHelp"></p>
+    <button id="retryCameraBtn" class="btn-primary">ניסיתי, לבדוק שוב</button>
+  </div>
+  <div id="prepReady" class="hidden">
+    <div class="video-wrap">
+      <video id="prepVideo" autoplay muted playsinline></video>
+      <div class="hud">
+        <div class="hud-note">תצוגה מקדימה, עוד לא מקליט</div>
+        <div class="mic-note" id="prepMic">בודקים קול...</div>
+      </div>
+    </div>
+    <div class="mic-meter" id="prepMeter"><div class="mic-meter-fill" id="prepMeterFill"></div></div>
+    <label for="camSel">מצלמה</label>
+    <select id="camSel"></select>
+    <label for="micSel">מיקרופון</label>
+    <select id="micSel"></select>
+    <p class="small mt" id="spaceLine">בודקים כמה מקום פנוי יש בטלפון...</p>
+    <button id="startRecordBtn" class="btn-primary">להתחיל לצלם</button>
+  </div>
+  <button class="btn-quiet back-home">חזרה לרשימה</button>
+</section>
+
+<!-- ===== צילום ===== -->
+<section id="screen-record" class="screen">
+  <div class="video-wrap">
+    <video id="recVideo" autoplay muted playsinline></video>
+    <div class="hud">
+      <div class="rec-dot"></div>
+      <div class="timer" id="recTimer">00:00</div>
+      <div class="mic-note" id="recMic"></div>
+    </div>
+  </div>
+  <p class="small center mt">מקליטים ושומרים. הצילום נעצר לבד ב-10:00.</p>
+  <div id="recWarn" class="notice warn hidden"></div>
+  <button id="stopBtn" class="btn-stop">סיום</button>
+  <div id="stopConfirm" class="card hidden">
+    <p style="font-size:22px; font-weight:700">לסיים את הצילום?</p>
+    <button id="stopYes" class="btn-primary">כן, סיימתי</button>
+    <button id="stopNo" class="btn-secondary">לא, להמשיך לצלם</button>
+  </div>
+</section>
+
+<!-- ===== אחרי הצילום: שם והעלאה ===== -->
+<section id="screen-after" class="screen">
+  <h1 id="afterHeadline">הסימולציה צולמה ושמורה</h1>
+  <label for="simTitle">שם הסימולציה</label>
+  <input type="text" id="simTitle" maxlength="80">
+  <div class="card">
+    <div class="title">מעלים לענן</div>
+    <div class="status" id="uploadLine">מתחילים להעלות...</div>
+    <div class="progress-track"><div class="progress-fill" id="uploadFill"></div></div>
+    <div id="uploadNotice" class="notice warn hidden"></div>
+  </div>
+  <button id="toStageBtn" class="btn-primary hidden">להקרנה</button>
+  <button class="btn-quiet back-home">חזרה לרשימה</button>
+</section>
+
+<!-- ===== הקרנה וסימון קטעים ===== -->
+<section id="screen-stage" class="screen">
+  <div class="stage-top np">
+    <h1 id="stageTitle"></h1>
+    <button id="projBtn" class="btn-secondary">מצב הקרנה</button>
+    <button id="stageBackBtn" class="btn-quiet">חזרה לרשימה</button>
+  </div>
+  <p class="small np" id="stageMeta"></p>
+
+  <div class="video-wrap">
+    <video id="stagePlayer" controls playsinline preload="metadata"></video>
+  </div>
+  <button id="exitProjBtn" class="btn-secondary proj-only">יציאה ממצב הקרנה</button>
+  <div id="stageNote" class="small mt np"></div>
+
+  <div class="card np" id="markPanel">
+    <div class="title">סימון קטעים</div>
+    <p class="small" style="margin:4px 0 12px">מנגנים, וברגע הנכון לוחצים "סמן התחלה". ממשיכים לנגן, ובסוף הקטע לוחצים "סמן סוף".</p>
+    <div class="mark-controls">
+      <button id="markStartBtn" class="btn-secondary">סמן התחלה</button>
+      <button id="markEndBtn" class="btn-secondary" disabled>סמן סוף</button>
+    </div>
+    <div id="markPending" class="hidden">
+      <p class="times-line" id="markPendingLine"></p>
+      <label for="markLabel">שם הקטע (לא חובה)</label>
+      <input type="text" id="markLabel" maxlength="60" placeholder="למשל: פתיחת השיחה">
+      <div class="mark-save-row">
+        <button id="markSaveBtn" class="btn-primary" disabled>שמירת הקטע</button>
+        <button id="markCancelBtn" class="btn-quiet">ביטול</button>
+      </div>
+    </div>
+    <div id="markError" class="notice warn mt hidden"></div>
+  </div>
+
+  <div class="chip np" id="segChip">הקטעים המסומנים</div>
+  <p class="small np hidden" id="segEmpty">עוד אין קטעים מסומנים. הם יופיעו כאן ברגע שתסמנו.</p>
+  <div id="segList"></div>
+</section>
+
+<script src="js/webm-fix.js"></script>
+<script type="module" src="js/sim.js"></script>
+</body>
+</html>

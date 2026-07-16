@@ -133,7 +133,16 @@ async function checkOwnerAccess(env, recordingId, user, jwt) {
   );
   if (!recs.length) return { ok: false, notFound: true };
   const r = recs[0];
-  if (r.owner_id !== user.id) return { ok: false };
+  if (r.owner_id !== user.id) {
+    // אדמין רשאי להזרים כל הקלטה (נדרש למרכז הסימולציות).
+    // ה-RLS כבר החזיר את השורה רק לבעלים או לאדמין, אז די לוודא את התפקיד.
+    const profs = await supa(
+      env,
+      `migdalor_profiles?id=eq.${user.id}&select=role`,
+      { jwt }
+    );
+    if (!profs.length || profs[0].role !== "admin") return { ok: false };
+  }
   return { ok: true, recording: { ...r, owner_name: "" } };
 }
 
