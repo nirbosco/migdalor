@@ -362,6 +362,27 @@
   }
   #stageNote { margin-top: 10px; font-size: 15px; color: #8f9ac4; }
 
+  #tVol {
+    width: 90px; min-height: 0; margin: 0; padding: 0; accent-color: var(--tchelet);
+    background: transparent; border: none; cursor: pointer;
+  }
+  /* רצועת קטעים במצב הקרנה: צ'יפים גדולים ללחיצה מרחוק */
+  .proj-segs { display: none; }
+  body.projecting .proj-segs {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;
+  }
+  .ps-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    min-height: 44px; padding: 8px 18px; margin: 0;
+    font-family: inherit; font-size: 16px; font-weight: 600;
+    background: #0e1a4a; color: var(--lavan);
+    border: 1px solid #23305f; border-radius: var(--pill); cursor: pointer;
+  }
+  .ps-chip:hover { border-color: var(--tchelet); color: var(--tchelet); }
+  .ps-chip.all { background: var(--kachol); border-color: var(--kachol); }
+  .ps-chip.all:hover { color: var(--lavan); background: var(--kachol-kehe); }
+  .ps-chip.playing { border-color: var(--turkiz, #23d7cd); color: #23d7cd; }
+
   /* ---- מצב הקרנה: נשארים רק הבמה, הציר ושם הקטע ---- */
   .proj-exit { display: none; }
   body.projecting .dev-banner, body.projecting .offline-bar { display: none; }
@@ -370,7 +391,9 @@
     padding: 12px 16px; display: flex; flex-direction: column;
   }
   body.projecting .studio-top, body.projecting .studio-side,
-  body.projecting .transport, body.projecting #stageNote { display: none; }
+  body.projecting #stageNote { display: none; }
+  body.projecting .transport { margin-top: 10px; }
+  body.projecting .t-mark { display: none; }
   body.projecting .studio-body {
     display: flex; flex-direction: column; align-items: stretch;
     flex: 1; min-height: 0; margin-top: 0;
@@ -631,10 +654,13 @@
           <span class="t-time"><span id="tCur">00:00</span> <span class="dur">/ <span id="tDur">00:00</span></span></span>
           <span class="t-spacer"></span>
           <button id="tSpeed" class="t-speed" title="מהירות הניגון">מהירות ×1</button>
+          <button id="tMute" class="t-skip" title="השתקה">🔊</button>
+          <input id="tVol" type="range" min="0" max="1" step="0.05" value="1" title="עוצמת קול">
           <button id="markStartBtn" class="t-mark">סמן התחלה</button>
           <button id="markEndBtn" class="t-mark" disabled>סמן סוף</button>
         </div>
 
+        <div class="proj-segs" id="projSegs"></div>
         <div class="timeline" id="timelineBox">
           <div class="tl-ruler" id="tlRuler"></div>
           <div class="tl-track" id="tlTrack">

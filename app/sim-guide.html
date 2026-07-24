@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>חותמטק · מדריך מרכז הסימולציות</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --kachol: #0046ff; --kachol-kehe: #0038cc; --tchelet: #0fb4f5;
+    --reka: #f0f0f0; --lavan: #ffffff; --deyo: #0a1330; --afor: #5a6072;
+    --kav: 1px solid #d9dbe3;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Rubik", sans-serif; background: var(--reka); color: var(--deyo); }
+  header {
+    background: var(--kachol); color: var(--lavan);
+    padding: 34px 22px 44px; text-align: center;
+  }
+  header img { height: 44px; margin-bottom: 14px; }
+  header h1 { font-size: clamp(26px, 5vw, 38px); font-weight: 800; }
+  header p { margin-top: 8px; font-size: 17px; opacity: .9; }
+  main { max-width: 860px; margin: -22px auto 0; padding: 0 18px 50px; }
+  .step {
+    background: var(--lavan); border: var(--kav); border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(10,19,48,.07);
+    padding: 26px 26px 22px; margin-bottom: 18px;
+  }
+  .step-head { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .step-num {
+    flex: none; width: 40px; height: 40px; border-radius: 50%;
+    background: var(--kachol); color: var(--lavan);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 700;
+  }
+  .step h2 { font-size: 21px; font-weight: 600; }
+  .step p, .step li { font-size: 17px; line-height: 1.65; color: #2a3352; }
+  .step ul { padding-inline-start: 22px; margin-top: 8px; }
+  .step .tip {
+    margin-top: 12px; background: #eef6ff; border-inline-start: 4px solid var(--tchelet);
+    border-radius: 8px; padding: 10px 14px; font-size: 16px;
+  }
+  .shot {
+    display: block; width: 100%; border-radius: 12px; border: var(--kav);
+    margin-top: 16px; box-shadow: 0 6px 18px rgba(10,19,48,.12);
+  }
+  .video-slot {
+    background: var(--deyo); color: var(--lavan); border-radius: 16px;
+    padding: 26px; text-align: center; margin-bottom: 18px; font-size: 17px;
+  }
+  .video-slot b { color: var(--tchelet); }
+  footer { text-align: center; padding: 10px 20px 40px; color: var(--afor); font-size: 15px; }
+  .back { display: inline-block; margin-top: 10px; color: var(--kachol); font-weight: 600; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="assets/hotam-white.png" alt="חותם">
+  <h1>מדריך מרכז הסימולציות</h1>
+  <p>מצילום בטלפון ועד הקרנה לקבוצה — בחמישה צעדים פשוטים</p>
+</header>
+
+<main>
+  <div class="video-slot">🎬 <b>מדריך וידאו</b> יתווסף כאן בקרוב. בינתיים — כל הצעדים למטה, עם תמונות.</div>
+
+  <div class="step">
+    <div class="step-head"><div class="step-num">1</div><h2>נכנסים</h2></div>
+    <p>בטלפון או במחשב, גולשים אל <b>hotam.tech/sim</b> ונכנסים — עם חשבון גוגל או עם "כניסה עם מייל ארגוני (TFI)" (מקבלים קישור למייל ולוחצים עליו מאותו מכשיר).</p>
+    <p class="tip">💡 המרכז פתוח לצוות בלבד. מצלמים מהטלפון, מקרינים מהמחשב — <b>עם אותו חשבון בשניהם</b>.</p>
+    <img class="shot" src="assets/guide/01-list.jpg" alt="רשימת הסימולציות">
+  </div>
+
+  <div class="step">
+    <div class="step-head"><div class="step-num">2</div><h2>מכינים את הצילום</h2></div>
+    <p>לוחצים "לצלם סימולציה חדשה". במסך ההכנה:</p>
+    <ul>
+      <li>בוחרים מצלמה ומיקרופון, ומוודאים ש<b>מד הקול זז</b> כשמדברים.</li>
+      <li>בוחרים <b>הגבלת זמן</b>: פריסטייל (בלי הגבלה) או עצירה אוטומטית אחרי X דקות.</li>
+    </ul>
+    <p class="tip">💡 ליום האירוע: מצב טיסה + WiFi/נתונים דלוקים, ומיקרופון דש אם יש — הסאונד הוא הכל.</p>
+    <img class="shot" src="assets/guide/02-prep.jpg" alt="מסך ההכנה">
+  </div>
+
+  <div class="step">
+    <div class="step-head"><div class="step-num">3</div><h2>מצלמים</h2></div>
+    <p>לוחצים "להתחיל לצלם". השעון רץ למעלה; מסיימים בכפתור "סיום" (או שהצילום נעצר לבד אם קבעתם הגבלה). ההעלאה לענן מתחילה מיד ואוטומטית.</p>
+    <p class="tip">💡 גם אם הרשת נופלת באמצע — הסרטון שמור בטלפון וההעלאה ממשיכה מאותה נקודה.</p>
+  </div>
+
+  <div class="step">
+    <div class="step-head"><div class="step-num">4</div><h2>עוברים למחשב — האולפן</h2></div>
+    <p>במחשב המחובר למקרן, נכנסים ל-hotam.tech/sim עם אותו חשבון. הסימולציה שצילמתם <b>מופיעה לבד ברשימה</b> ברגע שההעלאה נגמרת. לוחצים "הקרנה" ונכנסים לאולפן:</p>
+    <ul>
+      <li><b>ציר הזמן</b> מתחת לנגן: לחיצה או גרירה קופצת לכל נקודה.</li>
+      <li><b>סימון קטע</b>: מנגנים עד הרגע הרצוי, "סמן התחלה", ממשיכים, "סמן סוף", נותנים שם.</li>
+      <li>כל קטע מופיע כבלוק כחול על הציר וברשימת הקטעים — לחיצה מנגנת אותו.</li>
+      <li><b>"הקרנת כל הקטעים ברצף"</b> מנגן את כל מה שסימנתם, אחד אחרי השני.</li>
+    </ul>
+    <img class="shot" src="assets/guide/03-studio.jpg" alt="אולפן ההקרנה">
+  </div>
+
+  <div class="step">
+    <div class="step-head"><div class="step-num">5</div><h2>מקרינים לקבוצה</h2></div>
+    <p>לוחצים "מסך מלא להקרנה" — נשארים רק הסרטון, ציר הזמן והקטעים. יוצאים ב-Esc.</p>
+    <img class="shot" src="assets/guide/04-projection.jpg" alt="מצב הקרנה">
+  </div>
+
+  <div class="step">
+    <div class="step-head"><div class="step-num">✓</div><h2>טיפים ליום האירוע</h2></div>
+    <ul>
+      <li>לטעון טלפונים ומיקרופונים בלילה שלפני.</li>
+      <li>צילום בדיקה של 30 שניות בבוקר — לוודא קול ותמונה.</li>
+      <li>כל מוביל/ת רואה רק את הסימולציות שלו/ה — אין בלבול בין חדרים.</li>
+      <li>בסוף היום אפשר למחוק סבבים שלא צריך (כפתור "מחיקה" ברשימה).</li>
+    </ul>
+  </div>
+
+  <footer>
+    <a class="back" href="sim.html">→ חזרה למרכז הסימולציות</a><br>
+    חותם · אחריות לחינוך בישראל · חותמטק
+  </footer>
+</main>
+
+</body>
+</html>

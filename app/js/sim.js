@@ -951,6 +951,10 @@ function stageIsPlaying() {
   return !v.paused && !v.ended;
 }
 
+function stageVideo() {
+  return document.querySelector(".stage-video-wrap video");
+}
+
 function togglePlay() {
   if (stageIsPlaying()) {
     stagePause();
@@ -1418,7 +1422,27 @@ function segDurText(m) {
   return rem ? `${mns}:${String(rem).padStart(2, "0")} דק'` : `${mns} דק'`;
 }
 
+function renderProjSegs() {
+  const box = $("projSegs");
+  if (!box) return;
+  box.innerHTML = "";
+  const all = document.createElement("button");
+  all.className = "ps-chip all";
+  all.textContent = "▶ הקרנת כל הקטעים ברצף";
+  all.disabled = !marks.length;
+  all.addEventListener("click", playAllSegments);
+  box.appendChild(all);
+  marks.forEach((m, i) => {
+    const c = document.createElement("button");
+    c.className = "ps-chip" + (m.id === playingMarkId ? " playing" : "");
+    c.textContent = `${i + 1} · ${m.label || "קטע"}`;
+    c.addEventListener("click", () => playMark(m, `${i + 1}/${marks.length}`));
+    box.appendChild(c);
+  });
+}
+
 function renderMarks() {
+  renderProjSegs();
   const list = $("segList");
   list.innerHTML = "";
   show($("segEmpty"), !marks.length);
@@ -1727,6 +1751,19 @@ function wire() {
   $("stageBackBtn").addEventListener("click", showHome);
 
   $("tPlay").addEventListener("click", togglePlay);
+  // סאונד: השתקה + עוצמה (עובד גם במצב הקרנה)
+  $("tMute").addEventListener("click", () => {
+    const v = stageVideo();
+    if (!v) return;
+    v.muted = !v.muted;
+    $("tMute").textContent = v.muted ? "🔇" : "🔊";
+  });
+  $("tVol").addEventListener("input", () => {
+    const v = stageVideo();
+    if (!v) return;
+    v.volume = parseFloat($("tVol").value);
+    if (v.volume > 0 && v.muted) { v.muted = false; $("tMute").textContent = "🔊"; }
+  });
   $("tBack5").addEventListener("click", () => stageSeek(stageTime() - 5));
   $("tFwd5").addEventListener("click", () => stageSeek(stageTime() + 5));
   $("tSpeed").addEventListener("click", () => {
