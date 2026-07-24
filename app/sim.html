@@ -9,12 +9,27 @@
 <link rel="stylesheet" href="brand.css">
 <link rel="stylesheet" href="brand-dashboard.css">
 <style>
-  /* מרכז הסימולציות: עמוד צוות ממורכז. מובייל קודם (הצילום קורה מטלפון),
-     ומסך ההקרנה נפתח לרוחב כשמתחברים למקרן. */
+  /* מרכז הסימולציות: עמוד צוות. מובייל קודם (הצילום קורה מטלפון),
+     ומסך ההקרנה הוא "אולפן" כהה בסגנון עורך וידאו, מותאם למחשב ומקרן. */
 
   /* ---- רשימת הסימולציות ---- */
+  .list-head { display: flex; align-items: center; gap: 10px; }
+  .list-head h1 { flex: 1; min-width: 0; }
+  .guide-link {
+    flex: none; display: inline-flex; align-items: center; gap: 7px;
+    font-size: 16px; font-weight: 500; color: var(--afor);
+    text-decoration: none; border: var(--kav); border-radius: var(--pill);
+    padding: 6px 14px; background: var(--lavan);
+  }
+  .guide-link:hover { color: var(--kachol); border-color: var(--kachol); }
+  .guide-link .q {
+    width: 20px; height: 20px; border-radius: 50%; flex: none;
+    border: 1.5px solid currentColor; display: inline-flex;
+    align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; line-height: 1;
+  }
   .sim-row { display: flex; align-items: center; gap: 14px; }
-  .sim-row .sim-info { flex: 1; min-width: 0; }
+  .sim-row .sim-info { flex: 1; min-width: 0; cursor: pointer; }
   .sim-row .title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .sim-row .row-action {
     flex: none; font-size: 17px; padding: 10px 22px;
@@ -22,116 +37,413 @@
   }
   .sim-row .row-action:hover { background: var(--kachol-kehe); }
   .sim-row .row-action:disabled { background: var(--reka-alt); color: var(--afor); cursor: default; }
+  /* שורה שנכנסה ברענון השקט: כניסה עדינה */
+  .sim-row.row-new { animation: row-in .55s ease-out both; }
+  @keyframes row-in {
+    from { opacity: 0; transform: translateY(-8px) scale(.985); }
+    to   { opacity: 1; transform: none; }
+  }
+  .sim-row .badge-new { transition: opacity .8s ease; }
+  .sim-row .badge-new.fading { opacity: 0; }
 
-  /* ---- מסך ההקרנה: במה רחבה וכהה ---- */
-  body.stage { max-width: 1100px; background: #071033; color: var(--lavan); }
-  body.stage h1 { color: var(--lavan); }
-  body.stage .small { color: #aeb6d6; }
-  body.stage .card { background: #0f1a44; border-color: #23305f; color: var(--lavan); box-shadow: 0 6px 20px rgba(0,0,0,.35); }
-  body.stage .video-wrap { border: 1.5px solid var(--kachol); box-shadow: 0 0 0 5px rgba(0,70,255,.18); }
-  body.stage .btn-secondary { background: transparent; border-color: var(--tchelet); color: var(--tchelet); }
-  body.stage .btn-secondary:hover { background: rgba(15,180,245,.12); }
-  body.stage .btn-quiet { color: #aeb6d6; }
-  body.stage .btn-quiet:hover { color: var(--tchelet); }
-  body.stage input[type="text"] { background: #0f1a44; border-color: #23305f; color: var(--lavan); }
+  /* ============================================================
+     האולפן: מסך ההקרנה בסגנון עורך וידאו.
+     פלטת כחול-לילה של נגן הצפייה: בסיס #071033, משטחים #0e1a4a,
+     גבולות #23305f, מבטאי כחול חותם ותכלת. LTR רק בציר הזמן ובשעונים.
+     ============================================================ */
+  body.stage { max-width: none; padding: 0; background: #071033; color: var(--lavan); }
+  body.stage .dev-banner, body.stage .offline-bar { margin: 0; }
   body.stage :focus-visible { outline-color: var(--tchelet); }
 
-  .stage-top { display: flex; align-items: center; gap: 12px; margin-top: 4px; flex-wrap: wrap; }
-  .stage-top h1 { flex: 1; min-width: 200px; font-size: 24px; }
-  .stage-top .btn-secondary, .stage-top .btn-quiet {
-    display: inline-block; width: auto; min-height: 44px;
-    padding: 8px 20px; margin-top: 0; font-size: 17px;
+  .studio { max-width: 1440px; margin: 0 auto; padding: 16px 22px 40px; }
+  .studio:fullscreen { background: #071033; overflow: auto; }
+
+  /* ---- פס עליון ממותג ---- */
+  .studio-top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .studio-logo { height: 34px; width: auto; flex: none; display: block; }
+  .studio-id { flex: 1; min-width: 230px; }
+  .studio-app {
+    font-size: 13px; font-weight: 600; letter-spacing: .04em;
+    color: var(--tchelet); margin-bottom: 1px;
+  }
+  .studio-title-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  #stageTitle {
+    font-family: inherit; font-size: 24px; font-weight: 800; letter-spacing: -.01em;
+    color: var(--lavan); background: transparent; border: 1.5px solid transparent;
+    border-radius: 8px; padding: 1px 8px; margin: 0 -8px; min-height: 0;
+    width: auto; max-width: 100%; flex: 0 1 auto; min-width: 120px;
+  }
+  #stageTitle:hover { border-color: #23305f; }
+  #stageTitle:focus { border-color: var(--tchelet); box-shadow: none; outline: none; background: #0e1a4a; }
+  .studio-meta {
+    font-size: 15px; color: #8f9ac4; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+  }
+  .studio-actions { display: flex; align-items: center; gap: 10px; flex: none; flex-wrap: wrap; }
+  .btn-proj {
+    display: inline-flex; align-items: center; gap: 8px;
+    min-height: 42px; padding: 8px 20px; margin: 0;
+    font-size: 16px; font-weight: 600; font-family: inherit;
+    background: var(--kachol); color: var(--lavan);
+    border: 1.5px solid var(--kachol); border-radius: var(--pill);
+    box-shadow: 0 4px 14px rgba(0,70,255,.35); cursor: pointer;
+    transition: background .12s ease, box-shadow .12s ease;
+  }
+  .btn-proj:hover { background: var(--kachol-kehe); }
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 7px;
+    min-height: 42px; padding: 8px 16px; margin: 0;
+    font-size: 15px; font-weight: 500; font-family: inherit;
+    background: transparent; color: #aeb6d6;
+    border: 1px solid #23305f; border-radius: var(--pill); cursor: pointer;
+    text-decoration: none;
+    transition: color .12s ease, border-color .12s ease;
+  }
+  .btn-ghost:hover { color: var(--tchelet); border-color: var(--tchelet); }
+  .btn-ghost .q {
+    width: 18px; height: 18px; border-radius: 50%; flex: none;
+    border: 1.5px solid currentColor; display: inline-flex;
+    align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; line-height: 1;
   }
 
-  /* ---- קטעים מסומנים ---- */
-  .seg-row {
-    display: flex; align-items: center; gap: 12px;
-    background: var(--lavan); border: var(--kav); border-radius: var(--radius-katan);
-    padding: 10px 14px; margin-top: 10px; box-shadow: var(--tsel-rakh);
+  /* ---- גוף האולפן: במה + פאנל קטעים ---- */
+  .studio-body {
+    display: grid; grid-template-columns: minmax(0, 1fr) 336px;
+    gap: 18px; margin-top: 16px; align-items: start;
   }
-  body.stage .seg-row { background: #0f1a44; border-color: #23305f; }
-  .seg-play {
-    flex: 1; display: flex; align-items: center; gap: 12px;
-    background: transparent; border: none; color: inherit;
-    font-size: 19px; text-align: right; cursor: pointer; padding: 4px 0;
-    font-family: inherit; min-width: 0;
+  @media (max-width: 980px) { .studio-body { grid-template-columns: minmax(0, 1fr); } }
+
+  /* ---- הבמה: הנגן ---- */
+  .stage-video-wrap {
+    position: relative; background: #000;
+    border: 1px solid #23305f; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, .45);
   }
-  .seg-play .times {
+  .stage-video-wrap video { width: 100%; display: block; cursor: pointer; min-height: 120px; }
+  /* לוח דמה במצב תצוגה: אין סרטון אמיתי, יש במה יפה */
+  .dev-poster {
+    position: absolute; inset: 0; display: none;
+    align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+    background:
+      radial-gradient(90% 120% at 50% 0%, rgba(0,70,255,.30), transparent 60%),
+      linear-gradient(160deg, #0a1440, #060c28);
+    cursor: pointer;
+  }
+  body.dev-video .dev-poster { display: flex; }
+  body.dev-video .stage-video-wrap { aspect-ratio: 16 / 9; }
+  body.dev-video .stage-video-wrap video { display: none; }
+  .dev-poster img { width: min(200px, 40%); opacity: .16; }
+  .dev-poster p { font-size: 15px; color: #8f9ac4; padding: 0 20px; text-align: center; }
+
+  /* שם הקטע המוצג: גלולה כהה על הבמה */
+  .seg-overlay {
+    position: absolute; bottom: 16px; inset-inline-start: 50%;
+    transform: translateX(50%);
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(7, 16, 51, .88); border: 1px solid #23305f;
+    border-radius: var(--pill); padding: 8px 20px;
+    max-width: min(86%, 560px); white-space: nowrap;
+    opacity: 0; pointer-events: none; transition: opacity .3s ease;
+  }
+  .seg-overlay.on { opacity: 1; }
+  .seg-overlay .so-idx {
+    flex: none; font-size: 13px; font-weight: 600; color: var(--tchelet);
+    border: 1px solid rgba(15,180,245,.5); border-radius: var(--pill);
+    padding: 1px 10px; direction: ltr;
+  }
+  .seg-overlay .so-name {
+    font-size: 17px; font-weight: 600; color: var(--lavan);
+    overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* הסימולציה עוד עולה: הודעה חיה על הבמה */
+  .stage-wait {
+    position: absolute; inset: 0; display: flex;
+    align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+    background: linear-gradient(160deg, #0a1440, #060c28); text-align: center; padding: 20px;
+  }
+  .stage-wait .spin {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 3px solid #23305f; border-top-color: var(--tchelet);
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .stage-wait p { font-size: 18px; color: #aeb6d6; max-width: 460px; }
+
+  /* ---- שורת השליטה (טרנספורט) ---- */
+  .transport {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-top: 14px; padding: 10px 14px;
+    background: #0e1a4a; border: 1px solid #23305f; border-radius: 14px;
+  }
+  .t-play {
+    flex: none; width: 54px; height: 54px; border-radius: 50%;
+    background: var(--kachol); border: none; color: var(--lavan);
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(0,70,255,.4);
+    transition: background .12s ease, transform .08s ease;
+  }
+  .t-play:hover { background: var(--kachol-kehe); }
+  .t-play:active { transform: scale(.96); }
+  .t-play svg { width: 24px; height: 24px; fill: currentColor; display: block; }
+  .t-skip, .t-speed {
+    flex: none; min-height: 40px; padding: 7px 14px;
+    font-family: inherit; font-size: 15px; font-weight: 500;
+    background: transparent; color: #cdd4ee;
+    border: 1px solid #23305f; border-radius: var(--pill); cursor: pointer;
+    transition: color .12s ease, border-color .12s ease;
+  }
+  .t-skip:hover, .t-speed:hover { color: var(--tchelet); border-color: var(--tchelet); }
+  .t-speed { font-variant-numeric: tabular-nums; }
+  .t-time {
     flex: none; direction: ltr; font-variant-numeric: tabular-nums;
-    font-weight: 600; color: var(--kachol);
-    background: #eef3ff; border-radius: var(--pill); padding: 3px 12px; font-size: 16px;
+    font-size: 17px; font-weight: 600; color: var(--lavan); padding: 0 6px;
   }
-  body.stage .seg-play .times { background: rgba(0,70,255,.25); color: var(--tchelet); }
-  .seg-play .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .seg-row.playing { border-color: var(--kachol); }
-  body.stage .seg-row.playing { border-color: var(--tchelet); }
-  .seg-del {
-    flex: none; width: 38px; height: 38px; border-radius: var(--radius-katan);
-    border: var(--kav); background: transparent; color: var(--afor);
-    font-size: 20px; line-height: 1;
+  .t-time .dur { color: #8f9ac4; font-weight: 400; }
+  .t-spacer { flex: 1; min-width: 0; }
+  .t-mark {
+    flex: none; min-height: 44px; padding: 8px 18px;
+    font-family: inherit; font-size: 16px; font-weight: 600;
+    background: rgba(15,180,245,.10); color: var(--tchelet);
+    border: 1.5px solid var(--tchelet); border-radius: var(--pill); cursor: pointer;
+    transition: background .12s ease, opacity .12s ease;
   }
-  .seg-del:hover { color: var(--adom); border-color: var(--adom); }
-  body.stage .seg-del { border-color: #23305f; color: #aeb6d6; }
+  .t-mark:hover { background: rgba(15,180,245,.2); }
+  .t-mark:disabled { opacity: .35; cursor: default; background: transparent; }
+  .t-mark.arm { animation: arm-pulse 1.6s ease infinite; }
+  @keyframes arm-pulse { 50% { box-shadow: 0 0 0 6px rgba(15,180,245,.14); } }
 
-  /* כפתורי הסימון בזמן צפייה */
-  .mark-controls { display: flex; gap: 10px; flex-wrap: wrap; }
-  .mark-controls .btn-secondary {
-    flex: 1; min-width: 150px; margin-top: 0; min-height: 50px; font-size: 18px;
+  /* ---- ציר הזמן: הלב של האולפן ---- */
+  .timeline {
+    margin-top: 12px; padding: 10px 16px 16px;
+    background: #0e1a4a; border: 1px solid #23305f; border-radius: 14px;
+    direction: ltr; user-select: none; -webkit-user-select: none;
   }
-  #markPending { margin-top: 12px; }
-  #markPending .times-line { font-size: 19px; font-weight: 600; direction: rtl; }
-  #markPending .mark-save-row { display: flex; gap: 10px; margin-top: 10px; }
-  #markPending .mark-save-row .btn-primary,
-  #markPending .mark-save-row .btn-quiet { margin-top: 0; min-height: 50px; font-size: 18px; flex: 1; }
+  .tl-ruler { position: relative; height: 16px; }
+  .tl-ruler span {
+    position: absolute; top: 0; transform: translateX(-50%);
+    font-size: 11px; color: #8f9ac4; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .tl-track {
+    position: relative; height: 56px; margin-top: 4px;
+    background: #091235; border: 1px solid #1b2650; border-radius: 8px;
+    cursor: pointer; touch-action: none;
+  }
+  .tl-tick { position: absolute; top: 0; bottom: 0; width: 1px; background: #1b2650; }
+  .tl-tick.major { background: #2a3a75; }
+  .tl-block {
+    position: absolute; top: 7px; bottom: 7px; min-width: 6px;
+    background: rgba(0, 70, 255, .5);
+    border: 1px solid rgba(40, 130, 240, .8); border-radius: 6px;
+    overflow: hidden; cursor: pointer;
+    display: flex; align-items: center; padding: 0 7px;
+    transition: background .12s ease, box-shadow .12s ease;
+  }
+  .tl-block:hover { background: rgba(0, 70, 255, .68); }
+  .tl-block.selected {
+    background: rgba(0, 70, 255, .85); border-color: var(--tchelet);
+    box-shadow: 0 0 0 2px rgba(15, 180, 245, .35);
+  }
+  .tl-block .bl {
+    font-size: 12px; font-weight: 600; color: var(--lavan);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; direction: rtl;
+  }
+  .tl-block.live {
+    background: rgba(35, 215, 205, .28); border: 1.5px dashed var(--turkiz);
+    animation: live-pulse 1.4s ease infinite; cursor: default;
+  }
+  @keyframes live-pulse { 50% { background: rgba(35, 215, 205, .44); } }
+  .tl-playhead {
+    position: absolute; top: -5px; bottom: -1px; width: 2px; margin-left: -1px;
+    background: var(--tchelet); pointer-events: none; will-change: transform;
+    box-shadow: 0 0 8px rgba(15, 180, 245, .8);
+  }
+  .tl-playhead::before {
+    content: ""; position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+    border: 6px solid transparent; border-top: 8px solid var(--tchelet); border-bottom: none;
+  }
+  .tl-empty-note { margin-top: 8px; font-size: 13px; color: #8f9ac4; direction: rtl; text-align: right; }
 
-  /* ---- מצב הקרנה: רק הנגן והקטעים, לחיבור למקרן ---- */
-  body.projecting { max-width: none; padding: 12px 16px 32px; }
-  body.projecting .np { display: none !important; }
-  body.projecting .video-wrap { margin-top: 0; }
-  .proj-only { display: none !important; }
-  body.projecting .proj-only {
-    display: inline-block !important; width: auto; min-height: 40px;
-    padding: 6px 18px; font-size: 15px; margin-top: 10px;
+  /* ---- פאנל הקטעים ---- */
+  .studio-side {
+    background: #0e1a4a; border: 1px solid #23305f; border-radius: 14px;
+    padding: 14px 16px 18px;
   }
-  body.projecting .seg-row { padding: 6px 12px; margin-top: 8px; }
-  body.projecting #segList { display: flex; flex-wrap: wrap; gap: 8px; }
-  body.projecting .seg-row { margin-top: 0; }
-  body.projecting .seg-del { display: none; }
+  .side-head { display: flex; align-items: center; gap: 10px; }
+  .side-head h2 { font-size: 17px; font-weight: 600; color: var(--lavan); margin: 0; flex: 1; }
+  .side-count {
+    flex: none; font-size: 13px; font-weight: 600; color: var(--tchelet);
+    border: 1px solid rgba(15,180,245,.5); border-radius: var(--pill);
+    padding: 1px 10px; font-variant-numeric: tabular-nums;
+  }
+  .btn-playall {
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    width: 100%; min-height: 48px; margin-top: 12px;
+    font-family: inherit; font-size: 17px; font-weight: 600;
+    background: var(--kachol); color: var(--lavan);
+    border: 1.5px solid var(--kachol); border-radius: var(--pill); cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,70,255,.35);
+    transition: background .12s ease;
+  }
+  .btn-playall:hover { background: var(--kachol-kehe); }
+  .btn-playall:disabled { background: #16214f; border-color: #23305f; color: #5a6598; box-shadow: none; cursor: default; }
+  .btn-playall svg { width: 16px; height: 16px; fill: currentColor; flex: none; }
+  .btn-playall.stopping { background: transparent; color: var(--tchelet); border-color: var(--tchelet); box-shadow: none; }
+
+  /* כרטיס "קטע בסימון" (אחרי סמן התחלה) */
+  .pend-card {
+    margin-top: 12px; padding: 12px 14px;
+    background: rgba(35, 215, 205, .08); border: 1.5px dashed var(--turkiz);
+    border-radius: 10px;
+  }
+  .pend-card .times-line { font-size: 15px; color: var(--lavan); }
+  .pend-card label { font-size: 14px; color: #aeb6d6; margin-top: 10px; }
+  .pend-card input {
+    min-height: 44px; font-size: 16px;
+    background: #091235; border-color: #23305f; color: var(--lavan);
+  }
+  .pend-card input:focus { border-color: var(--turkiz); box-shadow: none; }
+  .pend-row { display: flex; gap: 8px; margin-top: 10px; }
+  .pend-row .btn-save {
+    flex: 1; min-height: 44px; font-family: inherit; font-size: 16px; font-weight: 600;
+    background: var(--kachol); color: var(--lavan);
+    border: none; border-radius: var(--pill); cursor: pointer;
+  }
+  .pend-row .btn-save:hover { background: var(--kachol-kehe); }
+  .pend-row .btn-save:disabled { background: #16214f; color: #5a6598; cursor: default; }
+  .pend-row .btn-drop {
+    flex: none; min-height: 44px; padding: 0 16px;
+    font-family: inherit; font-size: 15px;
+    background: transparent; color: #aeb6d6;
+    border: 1px solid #23305f; border-radius: var(--pill); cursor: pointer;
+  }
+  .pend-row .btn-drop:hover { color: var(--tchelet); border-color: var(--tchelet); }
+
+  /* כרטיסי הקטעים */
+  .seg-card {
+    margin-top: 10px; padding: 11px 13px;
+    background: #101d52; border: 1px solid #23305f; border-radius: 10px;
+    transition: border-color .12s ease, box-shadow .12s ease;
+  }
+  .seg-card.playing { border-color: var(--tchelet); box-shadow: 0 0 0 2px rgba(15,180,245,.22); }
+  .seg-card .sc-top { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .seg-card .sc-name {
+    flex: 1; min-width: 0; font-size: 16px; font-weight: 600; color: var(--lavan);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .seg-card .sc-name input {
+    width: 100%; min-height: 34px; font-size: 16px; font-weight: 600; padding: 2px 8px; margin: 0;
+    background: #091235; border-color: var(--tchelet); color: var(--lavan); border-radius: 8px;
+  }
+  .seg-card .sc-times {
+    flex: none; direction: ltr; font-variant-numeric: tabular-nums;
+    font-size: 13px; font-weight: 600; color: var(--tchelet);
+    background: rgba(0, 70, 255, .25); border-radius: var(--pill); padding: 2px 10px;
+  }
+  .seg-card .sc-dur { flex: none; font-size: 13px; color: #8f9ac4; white-space: nowrap; }
+  .seg-card .sc-actions { display: flex; gap: 6px; margin-top: 9px; }
+  .sc-btn {
+    flex: none; min-height: 34px; padding: 4px 13px;
+    font-family: inherit; font-size: 14px; font-weight: 500;
+    background: transparent; color: #cdd4ee;
+    border: 1px solid #23305f; border-radius: var(--pill); cursor: pointer;
+    transition: color .12s ease, border-color .12s ease;
+  }
+  .sc-btn:hover { color: var(--tchelet); border-color: var(--tchelet); }
+  .sc-btn.sc-play { background: rgba(0,70,255,.22); color: var(--lavan); border-color: rgba(40,130,240,.7); }
+  .sc-btn.sc-play:hover { background: rgba(0,70,255,.4); border-color: var(--tchelet); }
+  .sc-btn.sc-del:hover { color: #ff8fa0; border-color: #ff8fa0; }
+  .seg-empty-note { margin-top: 12px; font-size: 15px; color: #8f9ac4; }
+  .side-error {
+    margin-top: 10px; padding: 10px 12px; font-size: 15px;
+    background: rgba(213,50,75,.12); border: 1px solid rgba(213,50,75,.45);
+    border-radius: 10px; color: #ffb3bf;
+  }
+  #stageNote { margin-top: 10px; font-size: 15px; color: #8f9ac4; }
+
+  /* ---- מצב הקרנה: נשארים רק הבמה, הציר ושם הקטע ---- */
+  .proj-exit { display: none; }
+  body.projecting .dev-banner, body.projecting .offline-bar { display: none; }
+  body.projecting .studio {
+    max-width: none; height: 100vh; height: 100dvh;
+    padding: 12px 16px; display: flex; flex-direction: column;
+  }
+  body.projecting .studio-top, body.projecting .studio-side,
+  body.projecting .transport, body.projecting #stageNote { display: none; }
+  body.projecting .studio-body {
+    display: flex; flex-direction: column; align-items: stretch;
+    flex: 1; min-height: 0; margin-top: 0;
+  }
+  body.projecting .studio-main { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  body.projecting .stage-video-wrap { flex: 1; min-height: 0; }
+  body.projecting .stage-video-wrap video { display: block; width: 100%; height: 100%; object-fit: contain; }
+  body.projecting.dev-video .stage-video-wrap { aspect-ratio: auto; }
+  body.projecting.dev-video .stage-video-wrap video { display: none; }
+  body.projecting .timeline { margin-top: 10px; padding: 8px 14px 10px; }
+  body.projecting .tl-track { height: 40px; }
+  body.projecting .tl-block { top: 5px; bottom: 5px; }
+  body.projecting .tl-empty-note { display: none; }
+  body.projecting .proj-exit {
+    display: inline-flex; align-items: center; gap: 7px;
+    position: fixed; top: 14px; inset-inline-start: 14px; z-index: 40;
+    min-height: 38px; padding: 6px 16px; margin: 0;
+    font-family: inherit; font-size: 14px; font-weight: 500;
+    background: rgba(7,16,51,.8); color: #aeb6d6;
+    border: 1px solid #23305f; border-radius: var(--pill); cursor: pointer;
+    opacity: .55; transition: opacity .15s ease, color .15s ease;
+  }
+  body.projecting .proj-exit:hover { opacity: 1; color: var(--tchelet); }
+
+  /* ---- מובייל ---- */
+  @media (max-width: 640px) {
+    .studio { padding: 12px 12px 32px; }
+    .studio-logo { height: 28px; }
+    #stageTitle { font-size: 20px; }
+    .transport { gap: 8px; padding: 10px 12px; }
+    .t-play { width: 48px; height: 48px; }
+    .t-skip, .t-speed { padding: 6px 11px; font-size: 14px; }
+    .t-time { font-size: 15px; }
+    .t-spacer { flex-basis: 100%; }
+    .t-mark { flex: 1; }
+    .tl-track { height: 46px; }
+  }
 
   /* מד קול חי במסך ההכנה */
   #prepMeter .mic-meter-fill { transition: width .35s ease; }
 
   /* קרן הזוהר של הכפתור הראשי נשארת בתוך העמודה הצרה (בלי גלילה אופקית במובייל) */
   #newSimBtn.beam::before { inset: -26px 0 -14px; }
-/* בחירת הגבלת זמן */
-.limit-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-.limit-pill {
-  border: 1.5px solid var(--kachol, #0046ff);
-  background: transparent;
-  color: var(--kachol, #0046ff);
-  border-radius: 999px;
-  padding: 11px 18px;
-  font-size: 16px;
-  font-family: inherit;
-  cursor: pointer;
-}
-.limit-pill.selected {
-  background: var(--kachol, #0046ff);
-  color: #fff;
-}
-.limit-pill input {
-  width: 52px;
-  margin: 0 4px;
-  border: none;
-  border-bottom: 1.5px solid currentColor;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  text-align: center;
-  padding: 0;
-  min-height: 0;
-}
-.limit-pill input:focus { outline: none; }
+
+  /* בחירת הגבלת זמן */
+  .limit-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .limit-pill {
+    border: 1.5px solid var(--kachol, #0046ff);
+    background: transparent;
+    color: var(--kachol, #0046ff);
+    border-radius: 999px;
+    padding: 11px 18px;
+    font-size: 16px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .limit-pill.selected {
+    background: var(--kachol, #0046ff);
+    color: #fff;
+  }
+  .limit-pill input {
+    width: 52px;
+    margin: 0 4px;
+    border: none;
+    border-bottom: 1.5px solid currentColor;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: center;
+    padding: 0;
+    min-height: 0;
+  }
+  .limit-pill input:focus { outline: none; }
 </style>
 </head>
 <body>
@@ -166,7 +478,10 @@
 
 <!-- ===== בית: הסימולציות שלי ===== -->
 <section id="screen-home" class="screen">
-  <h1 class="screen-title">מרכז הסימולציות</h1>
+  <div class="list-head">
+    <h1 class="screen-title">מרכז הסימולציות</h1>
+    <a id="guideLink" class="guide-link" href="sim-guide.html"><span class="q">?</span>איך זה עובד?</a>
+  </div>
   <p class="small mt">מצלמים סימולציה, מסמנים קטעים, ומקרינים לקבוצה תוך דקות.</p>
 
   <!-- העלאה שממתינה מהפעם הקודמת -->
@@ -271,43 +586,98 @@
   <button class="btn-quiet back-home">חזרה לרשימה</button>
 </section>
 
-<!-- ===== הקרנה וסימון קטעים ===== -->
+<!-- ===== האולפן: הקרנה, ציר זמן וסימון קטעים ===== -->
 <section id="screen-stage" class="screen">
-  <div class="stage-top np">
-    <h1 id="stageTitle"></h1>
-    <button id="projBtn" class="btn-secondary">מצב הקרנה</button>
-    <button id="stageBackBtn" class="btn-quiet">חזרה לרשימה</button>
-  </div>
-  <p class="small np" id="stageMeta"></p>
+  <div class="studio" id="studioRoot">
 
-  <div class="video-wrap">
-    <video id="stagePlayer" controls playsinline preload="metadata"></video>
-  </div>
-  <button id="exitProjBtn" class="btn-secondary proj-only">יציאה ממצב הקרנה</button>
-  <div id="stageNote" class="small mt np"></div>
-
-  <div class="card np" id="markPanel">
-    <div class="title">סימון קטעים</div>
-    <p class="small" style="margin:4px 0 12px">מנגנים, וברגע הנכון לוחצים "סמן התחלה". ממשיכים לנגן, ובסוף הקטע לוחצים "סמן סוף".</p>
-    <div class="mark-controls">
-      <button id="markStartBtn" class="btn-secondary">סמן התחלה</button>
-      <button id="markEndBtn" class="btn-secondary" disabled>סמן סוף</button>
-    </div>
-    <div id="markPending" class="hidden">
-      <p class="times-line" id="markPendingLine"></p>
-      <label for="markLabel">שם הקטע (לא חובה)</label>
-      <input type="text" id="markLabel" maxlength="60" placeholder="למשל: פתיחת השיחה">
-      <div class="mark-save-row">
-        <button id="markSaveBtn" class="btn-primary" disabled>שמירת הקטע</button>
-        <button id="markCancelBtn" class="btn-quiet">ביטול</button>
+    <header class="studio-top">
+      <img class="studio-logo" src="assets/hotam-white.png" alt="חותם">
+      <div class="studio-id">
+        <div class="studio-app">חותמטק · מרכז הסימולציות</div>
+        <div class="studio-title-row">
+          <input id="stageTitle" maxlength="80" aria-label="שם הסימולציה, לחיצה עורכת" title="לחיצה עורכת את שם הסימולציה">
+          <span class="studio-meta" id="stageMeta"></span>
+        </div>
       </div>
-    </div>
-    <div id="markError" class="notice warn mt hidden"></div>
-  </div>
+      <div class="studio-actions">
+        <button id="projBtn" class="btn-proj">מסך מלא להקרנה</button>
+        <a id="stageGuideLink" class="btn-ghost" href="sim-guide.html"><span class="q">?</span>מדריך</a>
+        <button id="stageBackBtn" class="btn-ghost">חזרה לרשימה</button>
+      </div>
+    </header>
 
-  <div class="chip np" id="segChip">הקטעים המסומנים</div>
-  <p class="small np hidden" id="segEmpty">עוד אין קטעים מסומנים. הם יופיעו כאן ברגע שתסמנו.</p>
-  <div id="segList"></div>
+    <div class="studio-body">
+      <div class="studio-main">
+        <div class="stage-video-wrap">
+          <video id="stagePlayer" playsinline preload="metadata"></video>
+          <div class="dev-poster" id="devPoster">
+            <img src="assets/hotam-white.png" alt="">
+            <p>מצב תצוגה: במה מדומה של 8 דקות. הניגון, הציר והסימון עובדים כרגיל.</p>
+          </div>
+          <div class="stage-wait hidden" id="stageWait">
+            <div class="spin"></div>
+            <p id="stageWaitLine">הסימולציה עדיין עולה מהטלפון. המסך יתעדכן לבד ברגע שהיא מוכנה.</p>
+          </div>
+          <div class="seg-overlay" id="segOverlay">
+            <span class="so-idx" id="segOverlayIdx"></span>
+            <span class="so-name" id="segOverlayName"></span>
+          </div>
+        </div>
+
+        <div class="transport">
+          <button id="tPlay" class="t-play" aria-label="נגן"></button>
+          <button id="tBack5" class="t-skip">אחורה 5 שנ'</button>
+          <button id="tFwd5" class="t-skip">קדימה 5 שנ'</button>
+          <span class="t-time"><span id="tCur">00:00</span> <span class="dur">/ <span id="tDur">00:00</span></span></span>
+          <span class="t-spacer"></span>
+          <button id="tSpeed" class="t-speed" title="מהירות הניגון">מהירות ×1</button>
+          <button id="markStartBtn" class="t-mark">סמן התחלה</button>
+          <button id="markEndBtn" class="t-mark" disabled>סמן סוף</button>
+        </div>
+
+        <div class="timeline" id="timelineBox">
+          <div class="tl-ruler" id="tlRuler"></div>
+          <div class="tl-track" id="tlTrack">
+            <div id="tlTicks"></div>
+            <div id="tlBlocks"></div>
+            <div class="tl-playhead" id="tlPlayhead"></div>
+          </div>
+          <div class="tl-empty-note" id="tlNote">לחיצה או גרירה על הציר קופצת לנקודה. הקטעים המסומנים יופיעו כאן כבלוקים כחולים.</div>
+        </div>
+
+        <div id="stageNote"></div>
+      </div>
+
+      <aside class="studio-side">
+        <div class="side-head">
+          <h2>הקטעים המסומנים</h2>
+          <span class="side-count" id="segCount">0</span>
+        </div>
+        <button id="playAllBtn" class="btn-playall" disabled>
+          <svg viewBox="0 0 16 16"><path d="M3 2.5v11l9-5.5z"/></svg>
+          הקרנת כל הקטעים ברצף
+        </button>
+
+        <div id="markPending" class="pend-card hidden">
+          <p class="times-line" id="markPendingLine"></p>
+          <label for="markLabel">שם הקטע (לא חובה)</label>
+          <input type="text" id="markLabel" maxlength="60" placeholder="למשל: פתיחת השיחה">
+          <div class="pend-row">
+            <button id="markSaveBtn" class="btn-save" disabled>שמירת הקטע</button>
+            <button id="markCancelBtn" class="btn-drop">ביטול</button>
+          </div>
+        </div>
+        <div id="markError" class="side-error hidden"></div>
+
+        <p class="seg-empty-note hidden" id="segEmpty">
+          עוד אין קטעים מסומנים. מנגנים, וברגע הנכון לוחצים "סמן התחלה". בסוף הקטע לוחצים "סמן סוף".
+        </p>
+        <div id="segList"></div>
+      </aside>
+    </div>
+
+    <button id="exitProjBtn" class="proj-exit">יציאה (Esc)</button>
+  </div>
 </section>
 
 <script src="js/webm-fix.js"></script>

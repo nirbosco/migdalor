@@ -64,6 +64,9 @@ function buildSidebar(activeId) {
     NAV_FOOT.map((n) => navItemHtml(n, false)).join("") +
     `<a id="logoutLink" class="nav-item" href="#">` +
     `<span class="ico"><svg><use href="#i-share"/></svg></span>התנתקות</a>` +
+    // חתימת המותג: הלוגו הצבעוני של חותם, עם שקט מסביב
+    `<img src="assets/hotam-color.png" alt="חותם"` +
+    ` style="width:120px;height:auto;display:block;margin:22px auto 10px">` +
     `</div>`;
   $("logoutLink").addEventListener("click", async (e) => {
     e.preventDefault();
