@@ -649,6 +649,9 @@ function applyChosenLimit() {
 
 async function startRecording() {
   applyChosenLimit();
+  $("recHint").textContent = timeLimitS == null
+    ? "מקליטים ושומרים. עוצרים בכפתור כשמסיימים."
+    : `מקליטים ושומרים. הצילום ייעצר לבד ב-${clock(timeLimitS)}.`;
   goScreen("screen-record");
   $("recVideo").srcObject = $("prepVideo").srcObject;
   show($("stopConfirm"), false);
