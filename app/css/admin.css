@@ -121,3 +121,8 @@ a.stat-card:hover { box-shadow: var(--tsel-hover); border-color: var(--kachol); 
 /* ---- עימוד: כפתור "עוד" מתחת לטבלה ---- */
 .load-more-wrap { padding: 14px; text-align: center; border-top: var(--kav); }
 .load-more-wrap .btn-secondary { margin: 0 auto; max-width: 260px; }
+
+/* אישור בקשת הצטרפות מהדשבורד */
+.jr-actions { display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+.jr-actions select { min-height: 40px; margin: 0; width: auto; }
+.jr-done { border-color: #1f9d57; }

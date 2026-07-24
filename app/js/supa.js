@@ -651,6 +651,37 @@ export async function listRoster() {
 // 1. upsert ל-roster (email מפתח, on conflict מעדכן role+full_name).
 // 2. אם כבר קיים פרופיל למייל הזה, מעדכן גם את migdalor_profiles.role,
 //    כדי שאדם קיים יקבל את התפקיד החדש מיד ולא רק בהרשמה הבאה.
+// אישור בקשת הצטרפות: מוסיף לרשימה בתפקיד שנבחר ומסמן את הבקשה כטופלה
+export async function approveJoinRequest({ email, full_name, role }) {
+  await upsertPerson({ email, full_name, role });
+  if (DEV) {
+    const d = devAdminData();
+    d.joinRequests = d.joinRequests.filter((j) => j.email !== email);
+    return true;
+  }
+  const { error } = await supabase
+    .from("migdalor_join_requests")
+    .update({ handled: true })
+    .eq("email", email);
+  if (error) throw error;
+  return true;
+}
+
+// דחיית בקשה: רק מסמנים כטופלה, בלי להוסיף לרשימה
+export async function dismissJoinRequest(email) {
+  if (DEV) {
+    const d = devAdminData();
+    d.joinRequests = d.joinRequests.filter((j) => j.email !== email);
+    return true;
+  }
+  const { error } = await supabase
+    .from("migdalor_join_requests")
+    .update({ handled: true })
+    .eq("email", email);
+  if (error) throw error;
+  return true;
+}
+
 export async function upsertPerson({ email, full_name, role }) {
   if (DEV) {
     const d = devAdminData();

@@ -2,7 +2,12 @@
 // ופעילות אחרונה. הטבלאות המלאות והפעולות עברו לעמודים הייעודיים
 // (חותמיסטים, שיעורים, שיבוצים, משתמשים), והשכבה המשותפת ב-admin-shell.js.
 
-import { adminOverview, listAllRecordings } from "./supa.js";
+import {
+  adminOverview,
+  listAllRecordings,
+  approveJoinRequest,
+  dismissJoinRequest,
+} from "./supa.js";
 import { $, show, humanDate, humanMinutes } from "./ui.js";
 import { initAdminPage, navHref, esc, recordingStatusTag } from "./admin-shell.js";
 
@@ -31,11 +36,53 @@ async function renderOverview() {
     const m = document.createElement("div");
     m.className = "meta";
     m.textContent = `${jr.email} | ${jr.phone || "בלי טלפון"} | ${humanDate(jr.created_at)}`;
-    const s = document.createElement("div");
-    s.className = "status";
-    s.innerHTML =
-      `משבצים אותו בעמוד <a href="${navHref("admin-assignments.html")}">השיבוצים</a>, והכניסה הבאה שלו תעבוד.`;
-    card.append(t, m, s);
+    // אישור מהיר מתוך הדשבורד: בוחרים תפקיד ולוחצים לאשר
+    const act = document.createElement("div");
+    act.className = "jr-actions";
+    const roleSel = document.createElement("select");
+    roleSel.innerHTML =
+      '<option value="trainee">חותמיסט/ית</option>' +
+      '<option value="mentor">מוביל/ת בית</option>' +
+      '<option value="admin">אדמין</option>';
+    const okBtn = document.createElement("button");
+    okBtn.className = "row-action";
+    okBtn.textContent = "לאשר";
+    const noBtn = document.createElement("button");
+    noBtn.className = "row-action row-action-danger";
+    noBtn.textContent = "לדחות";
+    const note = document.createElement("div");
+    note.className = "status";
+    act.append(roleSel, okBtn, noBtn);
+    okBtn.addEventListener("click", async () => {
+      okBtn.disabled = noBtn.disabled = true;
+      okBtn.textContent = "מאשר...";
+      try {
+        await approveJoinRequest({ email: jr.email, full_name: jr.full_name, role: roleSel.value });
+        card.classList.add("jr-done");
+        act.remove();
+        note.innerHTML = roleSel.value === "trainee"
+          ? `אושר/ה ✓ עכשיו משבצים בעמוד <a href="${navHref("admin-assignments.html")}">השיבוצים</a>.`
+          : "אושר/ה ✓ הכניסה הבאה תעבוד.";
+        card.appendChild(note);
+      } catch (e) {
+        okBtn.disabled = noBtn.disabled = false;
+        okBtn.textContent = "לאשר";
+        note.textContent = "האישור לא הצליח: " + (e.message || e);
+        card.appendChild(note);
+      }
+    });
+    noBtn.addEventListener("click", async () => {
+      if (!confirm(`לדחות את הבקשה של ${jr.full_name || jr.email}?`)) return;
+      okBtn.disabled = noBtn.disabled = true;
+      try {
+        await dismissJoinRequest(jr.email);
+        card.remove();
+      } catch (e) {
+        okBtn.disabled = noBtn.disabled = false;
+        alert("הדחייה לא הצליחה: " + (e.message || e));
+      }
+    });
+    card.append(t, m, act);
     $("joinRequests").appendChild(card);
   }
   for (const f of data.failedUploads) {
