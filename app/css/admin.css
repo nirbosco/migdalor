@@ -1,0 +1,123 @@
+/* ============================================================
+   חותמטק: תוספות משותפות לעמודי הניהול (admin*.html)
+   נטען אחרי brand.css ו-brand-dashboard.css, ומשתמש רק בטוקנים שלהם.
+   כאן גרות ההתאמות שהיו בעבר ב-<style> של admin.html, פלוס
+   התוספות של פיצול הניהול לחמישה עמודים.
+   ============================================================ */
+
+/* התאמות מסך-מלא ורספונסיביות לפאנל האדמין */
+.app-shell > .topbar, .app-shell > .dash-main { min-width: 0; }
+.topbar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 720px) {
+  .topbar-actions .btn-secondary { display: none; }
+  .topbar { gap: 10px; padding: 0 14px; }
+}
+
+/* מפריד "או" בין שתי דרכי הכניסה */
+.login-divider {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--afor); font-size: 16px; margin-top: 18px;
+}
+.login-divider::before, .login-divider::after {
+  content: ""; flex: 1; border-top: var(--kav);
+}
+
+/* ---- כרטיסי סטטיסטיקה לחיצים (דשבורד) ---- */
+a.stat-card {
+  display: block; text-decoration: none; color: inherit;
+  transition: box-shadow .12s ease, border-color .12s ease;
+}
+a.stat-card:hover { box-shadow: var(--tsel-hover); border-color: var(--kachol); }
+
+/* ---- כותרת מדור עם פעולה בצד ---- */
+.dash-section-head .head-link {
+  margin-inline-start: auto;
+  color: var(--kachol); font-size: 15px; font-weight: 500;
+  text-decoration: none;
+}
+.dash-section-head .head-link:hover { text-decoration: underline; }
+
+/* ---- מסננים בסרגל הטבלה ---- */
+.table-toolbar select {
+  margin: 0; min-height: 42px; width: auto;
+  font-size: 16px; padding-inline: 12px 34px;
+}
+.table-toolbar .toolbar-count {
+  color: var(--afor); font-size: 14.5px; white-space: nowrap;
+}
+
+/* מייל משני מתחת לשם, בטבלאות */
+.sub-mail {
+  display: block; font-size: 12.5px; color: var(--afor);
+  direction: ltr; text-align: right;
+}
+
+/* ---- שורת פירוט נפתחת (עמוד החותמיסטים) ---- */
+.dtable tbody tr.row-open td { background: #f5f8ff; }
+.dtable tbody tr.detail-row td {
+  background: var(--reka);
+  padding: 16px 18px 20px;
+  cursor: default;
+}
+.detail-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 1100px) { .detail-cols { grid-template-columns: 1fr; } }
+.detail-box {
+  background: var(--lavan); border: var(--kav);
+  border-radius: var(--radius-katan); padding: 14px 16px;
+}
+.detail-box h4 { margin: 0 0 10px; font-size: 15px; color: var(--afor); font-weight: 600; }
+.detail-line {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 0; border-top: 1px solid var(--reka);
+  font-size: 15px;
+}
+.detail-line:first-of-type { border-top: none; }
+.detail-line .grow { flex: 1; min-width: 140px; font-weight: 500; }
+.detail-line .dim { color: var(--afor); font-weight: 400; font-size: 14px; }
+.detail-empty { color: var(--afor); font-size: 15px; }
+.trow-card .card-detail { margin-top: 12px; border-top: var(--kav); padding-top: 12px; }
+
+/* ---- מדורי טופס בעמוד (שיבוץ ידני, הוספת משתמש) ---- */
+.form-card {
+  background: var(--lavan); border: var(--kav);
+  border-radius: var(--radius); box-shadow: var(--tsel-rakh);
+  padding: 20px 22px;
+}
+.form-card .form-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px;
+}
+@media (max-width: 720px) { .form-card .form-grid { grid-template-columns: 1fr; } }
+.form-card .btn-primary { max-width: 320px; }
+
+/* ---- מדור טעינת שיבוצים: צעדים ממוספרים ומסך הבדיקה ---- */
+.import-card {
+  background: var(--lavan); border: var(--kav);
+  border-radius: var(--radius); box-shadow: var(--tsel-rakh);
+  padding: 20px 22px;
+}
+.import-step { margin-top: 18px; padding-top: 16px; border-top: var(--kav); }
+.import-step:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+.import-step-title {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 600; font-size: 17px; color: var(--deyo); margin-bottom: 4px;
+}
+.import-step-title .num {
+  width: 26px; height: 26px; flex: none; border-radius: 50%;
+  background: #eef3ff; color: var(--kachol);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
+}
+.import-card .small.fine { font-size: 15px; margin-top: 8px; }
+.import-card .btn-secondary { max-width: 320px; }
+#sheetUrl { direction: ltr; text-align: left; }
+.paste-details { margin-top: 16px; }
+.paste-details summary { cursor: pointer; color: var(--kachol); font-size: 16px; font-weight: 500; }
+.import-preview { margin-top: 14px; }
+.import-preview .dtable th, .import-preview .dtable td { padding: 10px 12px; font-size: 15px; }
+.import-preview tr.row-bad td { background: var(--adom-rakh); }
+.import-preview .row-reason { color: var(--adom); font-size: 13.5px; font-weight: 500; white-space: normal; }
+.import-preview .trow-card.row-bad { border-inline-start: 4px solid var(--adom); }
+
+/* ---- עימוד: כפתור "עוד" מתחת לטבלה ---- */
+.load-more-wrap { padding: 14px; text-align: center; border-top: var(--kav); }
+.load-more-wrap .btn-secondary { margin: 0 auto; max-width: 260px; }

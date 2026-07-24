@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>חותמטק: שיבוצים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="brand.css">
+<link rel="stylesheet" href="brand-dashboard.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="dev-banner">מצב תצוגה: נתוני הדגמה בלבד, שום דבר לא נשלח לשרת</div>
+<div class="offline-bar">אין אינטרנט כרגע. הנתונים יתעדכנו כשיחזור החיבור.</div>
+
+<div id="authScreens"></div>
+
+<section id="screen-admin" class="screen">
+  <div class="app-shell">
+    <aside class="sidebar" id="adminSidebar"></aside>
+
+    <header class="topbar">
+      <button class="shell-burger" aria-label="תפריט">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div class="topbar-title">שיבוצים <span class="sub">פאנל ניהול</span></div>
+      <div class="topbar-spacer"></div>
+      <div class="topbar-actions">
+        <div class="topbar-user"><span class="avatar" id="topbarAvatar">·</span></div>
+      </div>
+    </header>
+
+    <main class="dash-main">
+      <!-- ===== טבלת השיבוצים ===== -->
+      <div class="dash-section">
+        <div class="dash-section-head"><h2>כל השיבוצים</h2></div>
+        <div id="tableLoading"><div class="skeleton"></div></div>
+        <div id="tableError" class="notice hidden">
+          לא הצלחנו להביא את הנתונים.
+          <button id="tableRetry" class="btn-secondary">לנסות שוב</button>
+        </div>
+        <div id="tableEmpty" class="notice plain hidden">עוד אין שיבוצים. מוסיפים בטופס למטה או טוענים מקובץ.</div>
+
+        <div class="table-card" id="asgCard" hidden>
+          <div class="table-toolbar">
+            <div class="search">
+              <span class="ico"><svg><use href="#i-eye"/></svg></span>
+              <input type="search" id="asgSearch" placeholder="חיפוש לפי חותמיסט או מוביל...">
+            </div>
+            <select id="typeFilter" aria-label="סינון לפי סוג שיבוץ">
+              <option value="">כל הסוגים</option>
+              <option value="house">מוביל בית</option>
+              <option value="daat">מוביל דעת</option>
+            </select>
+            <select id="asgMentorFilter" aria-label="סינון לפי מוביל">
+              <option value="">כל המובילים</option>
+            </select>
+            <span class="toolbar-count" id="asgCount"></span>
+          </div>
+
+          <!-- דסקטופ -->
+          <div class="dtable-scroll">
+            <table class="dtable" id="asgTable">
+              <thead>
+                <tr>
+                  <th class="sortable" data-key="trainee_name">חותמיסט <span class="sort-ico">▲</span></th>
+                  <th class="sortable" data-key="mentor_name">מוביל <span class="sort-ico">▲</span></th>
+                  <th class="sortable" data-key="assignment_type">סוג <span class="sort-ico">▲</span></th>
+                  <th class="sortable sorted-desc" data-key="createdTs">תאריך <span class="sort-ico">▲</span></th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="asgRows"></tbody>
+            </table>
+          </div>
+
+          <!-- מובייל -->
+          <div class="table-cards" id="asgCards"></div>
+        </div>
+      </div>
+
+      <!-- ===== שיבוץ ידני ===== -->
+      <div class="dash-section">
+        <div class="dash-section-head"><h2>שיבוץ ידני</h2></div>
+        <div class="form-card">
+          <form id="manualForm">
+            <div class="form-grid">
+              <div>
+                <label for="mTraineeEmail">מייל החותמיסט</label>
+                <input type="email" id="mTraineeEmail" required>
+              </div>
+              <div>
+                <label for="mTraineeName">שם החותמיסט</label>
+                <input type="text" id="mTraineeName">
+              </div>
+              <div>
+                <label for="mMentorEmail">מייל מוביל הבית</label>
+                <input type="email" id="mMentorEmail" required>
+              </div>
+              <div>
+                <label for="mMentorName">שם מוביל הבית</label>
+                <input type="text" id="mMentorName">
+              </div>
+              <div>
+                <label for="mType">סוג השיבוץ (לא חובה)</label>
+                <input type="text" id="mType" placeholder="מוביל בית / מוביל דעת">
+              </div>
+            </div>
+            <button type="submit" class="btn-primary">לשבץ</button>
+          </form>
+          <div id="manualDone" class="notice ok hidden"></div>
+          <div id="manualError" class="notice hidden"></div>
+        </div>
+      </div>
+
+      <!-- ===== טעינת שיבוצים מקובץ ===== -->
+      <div class="dash-section">
+        <div class="dash-section-head"><h2>טעינת שיבוצים מקובץ</h2></div>
+        <div class="import-card">
+          <p class="small">
+            ממלאים את התבנית שורה לכל שיבוץ, וטוענים אותה חזרה כקובץ או דרך קישור לגיליון גוגל.
+            לפני הטעינה מוצגת בדיקה של כל השורות.
+          </p>
+
+          <div class="import-step">
+            <div class="import-step-title"><span class="num">1</span>מורידים תבנית וממלאים</div>
+            <button id="tplBtn" class="btn-secondary">הורדת תבנית אקסל</button>
+            <p class="small fine">בתבנית יש דף הוראות קצר ושתי שורות דוגמה שמוחקים לפני הטעינה.</p>
+          </div>
+
+          <div class="import-step">
+            <div class="import-step-title"><span class="num">2</span>טוענים חזרה</div>
+
+            <input type="file" id="xlsFile" class="hidden" accept=".xlsx,.xls,.csv">
+            <button id="xlsPickBtn" class="btn-secondary">בחירת קובץ אקסל מהמחשב</button>
+
+            <label for="sheetUrl">או קישור לגיליון גוגל</label>
+            <input type="text" id="sheetUrl" inputmode="url" placeholder="https://docs.google.com/spreadsheets/d/...">
+            <button id="sheetPullBtn" class="btn-secondary">משיכה מהגיליון</button>
+            <p class="small fine">שיתוף הגיליון צריך להיות במצב "כל מי שיש לו הקישור".</p>
+
+            <details class="paste-details">
+              <summary>או להדביק שורות מהגיליון</summary>
+              <p class="small fine">
+                סדר העמודות: מייל חותמיסט, שם חותמיסט, מייל מוביל בית, שם מוביל בית, סוג שיבוץ (לא חובה).
+                מפרידים בפסיק או בטאב (הדבקה מאקסל עובדת כמו שהיא).
+              </p>
+              <textarea id="csvBox" placeholder="trainee@example.com&#9;משה לוי&#9;mentor@example.com&#9;אהוד כהן&#9;מוביל בית"></textarea>
+              <button id="csvPreviewBtn" class="btn-secondary">לבדוק לפני טעינה</button>
+            </details>
+          </div>
+
+          <div id="csvBusy" class="notice plain hidden">רק רגע, קוראים את הנתונים...</div>
+
+          <div id="csvPreview" class="hidden">
+            <div class="import-step import-preview-step">
+              <div class="import-step-title"><span class="num">3</span>בודקים וטוענים</div>
+              <div class="notice plain" id="csvSummary"></div>
+              <div class="table-card import-preview">
+                <div class="dtable-scroll">
+                  <table class="dtable">
+                    <thead><tr><th>חותמיסט</th><th>מוביל בית</th><th>סוג</th><th>בדיקה</th></tr></thead>
+                    <tbody id="previewRows"></tbody>
+                  </table>
+                </div>
+                <div class="table-cards" id="previewCards"></div>
+              </div>
+              <button id="csvCommitBtn" class="btn-primary">לטעון</button>
+            </div>
+          </div>
+
+          <div id="csvDone" class="notice ok hidden"></div>
+          <div id="csvError" class="notice hidden"></div>
+        </div>
+      </div>
+    </main>
+
+    <div class="shell-scrim"></div>
+  </div>
+</section>
+
+<script type="module" src="js/admin-assignments.js"></script>
+</body>
+</html>

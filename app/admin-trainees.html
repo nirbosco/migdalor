@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>חותמטק: החותמיסטים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="brand.css">
+<link rel="stylesheet" href="brand-dashboard.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="dev-banner">מצב תצוגה: נתוני הדגמה בלבד, שום דבר לא נשלח לשרת</div>
+<div class="offline-bar">אין אינטרנט כרגע. הנתונים יתעדכנו כשיחזור החיבור.</div>
+
+<div id="authScreens"></div>
+
+<section id="screen-admin" class="screen">
+  <div class="app-shell">
+    <aside class="sidebar" id="adminSidebar"></aside>
+
+    <header class="topbar">
+      <button class="shell-burger" aria-label="תפריט">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div class="topbar-title">חותמיסטים <span class="sub">פאנל ניהול</span></div>
+      <div class="topbar-spacer"></div>
+      <div class="topbar-actions">
+        <div class="topbar-user"><span class="avatar" id="topbarAvatar">·</span></div>
+      </div>
+    </header>
+
+    <main class="dash-main">
+      <div class="dash-section">
+        <div class="dash-section-head"><h2>כל החותמיסטים</h2></div>
+        <div id="tableLoading"><div class="skeleton"></div></div>
+        <div id="tableError" class="notice hidden">
+          לא הצלחנו להביא את הנתונים.
+          <button id="tableRetry" class="btn-secondary">לנסות שוב</button>
+        </div>
+
+        <div class="table-card" id="traineeCard" hidden>
+          <div class="table-toolbar">
+            <div class="search">
+              <span class="ico"><svg><use href="#i-eye"/></svg></span>
+              <input type="search" id="traineeSearch" placeholder="חיפוש לפי שם או מייל...">
+            </div>
+            <select id="mentorFilter" aria-label="סינון לפי מוביל בית">
+              <option value="">כל מובילי הבית</option>
+            </select>
+            <span class="toolbar-count" id="traineeCount"></span>
+          </div>
+
+          <!-- דסקטופ -->
+          <div class="dtable-scroll">
+            <table class="dtable" id="traineeTable">
+              <thead>
+                <tr>
+                  <th class="sortable" data-key="full_name">שם <span class="sort-ico">▲</span></th>
+                  <th class="sortable" data-key="houseNames">מוביל בית <span class="sort-ico">▲</span></th>
+                  <th class="sortable" data-key="daatNames">מוביל דעת <span class="sort-ico">▲</span></th>
+                  <th class="sortable" data-key="recordings">שיעורים <span class="sort-ico">▲</span></th>
+                  <th class="sortable sorted-desc" data-key="lastRecordingTs">אחרון <span class="sort-ico">▲</span></th>
+                  <th class="sortable" data-key="shares">שיתופים <span class="sort-ico">▲</span></th>
+                  <th class="sortable" data-key="viewed">נצפו <span class="sort-ico">▲</span></th>
+                  <th>סטטוס</th>
+                </tr>
+              </thead>
+              <tbody id="traineeRows"></tbody>
+            </table>
+          </div>
+
+          <!-- מובייל -->
+          <div class="table-cards" id="traineeCards"></div>
+        </div>
+      </div>
+    </main>
+
+    <div class="shell-scrim"></div>
+  </div>
+</section>
+
+<script type="module" src="js/admin-trainees.js"></script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>חותמטק: השיעורים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="brand.css">
+<link rel="stylesheet" href="brand-dashboard.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="dev-banner">מצב תצוגה: נתוני הדגמה בלבד, שום דבר לא נשלח לשרת</div>
+<div class="offline-bar">אין אינטרנט כרגע. הנתונים יתעדכנו כשיחזור החיבור.</div>
+
+<div id="authScreens"></div>
+
+<section id="screen-admin" class="screen">
+  <div class="app-shell">
+    <aside class="sidebar" id="adminSidebar"></aside>
+
+    <header class="topbar">
+      <button class="shell-burger" aria-label="תפריט">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div class="topbar-title">שיעורים <span class="sub">פאנל ניהול</span></div>
+      <div class="topbar-spacer"></div>
+      <div class="topbar-actions">
+        <div class="topbar-user"><span class="avatar" id="topbarAvatar">·</span></div>
+      </div>
+    </header>
+
+    <main class="dash-main">
+      <div class="dash-section">
+        <div class="dash-section-head"><h2>כל השיעורים</h2></div>
+        <div id="tableLoading"><div class="skeleton"></div></div>
+        <div id="tableError" class="notice hidden">
+          לא הצלחנו להביא את הנתונים.
+          <button id="tableRetry" class="btn-secondary">לנסות שוב</button>
+        </div>
+        <div id="tableEmpty" class="notice plain hidden">עוד אין שיעורים במערכת.</div>
+
+        <div class="table-card" id="lessonCard" hidden>
+          <div class="table-toolbar">
+            <div class="search">
+              <span class="ico"><svg><use href="#i-eye"/></svg></span>
+              <input type="search" id="lessonSearch" placeholder="חיפוש לפי כותרת או חותמיסט...">
+            </div>
+            <select id="statusFilter" aria-label="סינון לפי סטטוס">
+              <option value="">כל הסטטוסים</option>
+              <option value="ready">מוכן</option>
+              <option value="uploading">בהעלאה</option>
+              <option value="failed">נכשל</option>
+            </select>
+            <span class="toolbar-count" id="lessonCount"></span>
+          </div>
+
+          <!-- דסקטופ -->
+          <div class="dtable-scroll">
+            <table class="dtable" id="lessonTable">
+              <thead>
+                <tr>
+                  <th class="sortable" data-key="title">כותרת <span class="sort-ico">▲</span></th>
+                  <th class="sortable" data-key="ownerName">חותמיסט <span class="sort-ico">▲</span></th>
+                  <th class="sortable sorted-desc" data-key="createdTs">תאריך <span class="sort-ico">▲</span></th>
+                  <th class="sortable" data-key="duration_s">משך <span class="sort-ico">▲</span></th>
+                  <th class="sortable" data-key="status">סטטוס <span class="sort-ico">▲</span></th>
+                  <th>שותף עם</th>
+                  <th>נצפה</th>
+                  <th>ניתוח חכם</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="lessonRows"></tbody>
+            </table>
+          </div>
+
+          <!-- מובייל -->
+          <div class="table-cards" id="lessonCards"></div>
+
+          <!-- עימוד: עמוד של 50, כפתור "עוד" -->
+          <div class="load-more-wrap hidden" id="moreWrap">
+            <button id="moreBtn" class="btn-secondary">עוד שיעורים</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div class="shell-scrim"></div>
+  </div>
+</section>
+
+<script type="module" src="js/admin-lessons.js"></script>
+</body>
+</html>

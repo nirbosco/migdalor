@@ -77,7 +77,13 @@ export async function signInWithGoogle() {
 // הקישור מחזיר לאותו עמוד בדיוק, ו-onAuthStateChange הקיים קולט את הכניסה.
 // מחיקת הקלטה (בעלים או אדמין): המסד + הקובץ בענן, דרך ה-Worker.
 export async function deleteRecording(recordingId) {
-  if (DEV) return { ok: true };
+  if (DEV) {
+    // גם בהדגמה המחיקה מרגישה אמיתית: הרשומה יורדת מנתוני ההדגמה
+    if (_devAdmin) {
+      _devAdmin.recordings = _devAdmin.recordings.filter((r) => r.id !== recordingId);
+    }
+    return { ok: true };
+  }
   const { WORKER_URL } = await import("./config.js");
   const jwt = await getAccessToken();
   const res = await fetch(WORKER_URL + "/mine/" + encodeURIComponent(recordingId), {
@@ -384,36 +390,156 @@ export async function listSharedWithMe() {
 
 // ---------- אדמין ----------
 
+// מצב תצוגה: מחולל נתוני הדגמה בהיקף אמיתי לעמודי הניהול.
+// כ-25 חותמיסטים, 8 מובילים, 40 שיעורים ו-40+ שיבוצים, דטרמיניסטי,
+// כדי שההדגמה תיראה מלאה ואחידה בכל טעינה ובכל עמוד.
+let _devAdmin = null;
+function devAdminData() {
+  if (_devAdmin) return _devAdmin;
+  let seed = 7;
+  const rnd = () => {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    return seed / 2147483648;
+  };
+  const FIRST = [
+    "נועה", "איתי", "תמר", "יונתן", "מיכל", "עומר", "שירה", "דניאל", "הילה",
+    "אלון", "רוני", "יעל", "אורי", "ליאור", "אביגיל", "נדב", "מאיה", "עידו",
+    "טליה", "אסף", "נטע", "גיא", "שני", "עמית", "הדר", "יובל", "ענבר", "תום",
+    "רעות", "אביב", "כרמל", "שקד", "אלה", "מתן",
+  ];
+  const LAST = [
+    "כהן", "לוי", "מזרחי", "פרץ", "ביטון", "אברהם", "פרידמן", "שפירא",
+    "גבאי", "דהן", "אזולאי", "חדד", "עמר", "בן דוד", "רוזן", "קדוש",
+  ];
+  const used = new Set();
+  const uniqueName = () => {
+    for (let i = 0; i < 50; i++) {
+      const n = FIRST[Math.floor(rnd() * FIRST.length)] + " " + LAST[Math.floor(rnd() * LAST.length)];
+      if (!used.has(n)) {
+        used.add(n);
+        return n;
+      }
+    }
+    return "פלוני אלמוני " + used.size;
+  };
+
+  const mentors = [];
+  for (let i = 0; i < 8; i++) {
+    mentors.push({ email: `m${i + 1}.demo@example.com`, full_name: uniqueName(), role: "mentor" });
+  }
+  const traineePeople = [];
+  for (let i = 0; i < 25; i++) {
+    traineePeople.push({ email: `t${i + 1}.demo@example.com`, full_name: uniqueName(), role: "trainee" });
+  }
+  const roster = [
+    ...traineePeople,
+    ...mentors,
+    { email: "nir.demo@example.com", full_name: "ניר (הדגמה)", role: "admin" },
+  ];
+
+  const DAY = 24 * 3600 * 1000;
+  const base = Date.parse("2026-07-01T08:00:00Z");
+
+  // שיבוצים: לכל חותמיסט מוביל בית, ולרובם גם מוביל דעת
+  const assignments = [];
+  let aid = 0;
+  const houseOf = {};
+  traineePeople.forEach((t, i) => {
+    const house = mentors[i % 5];
+    houseOf[t.email] = house;
+    assignments.push({
+      id: "dev-asg-" + ++aid,
+      trainee_email: t.email,
+      trainee_name: t.full_name,
+      mentor_email: house.email,
+      mentor_name: house.full_name,
+      assignment_type: "מוביל בית",
+      created_at: new Date(base + (i % 10) * DAY).toISOString(),
+    });
+    if (i % 3 !== 0) {
+      const daat = mentors[5 + (i % 3)];
+      assignments.push({
+        id: "dev-asg-" + ++aid,
+        trainee_email: t.email,
+        trainee_name: t.full_name,
+        mentor_email: daat.email,
+        mentor_name: daat.full_name,
+        assignment_type: "מוביל דעת",
+        created_at: new Date(base + (i % 10) * DAY).toISOString(),
+      });
+    }
+  });
+
+  // שיעורים: 40, מפוזרים בין החותמיסטים. רובם מוכנים, אחד נכשל ואחד תקוע.
+  const WD = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+  const recordings = [];
+  for (let i = 0; i < 40; i++) {
+    const t = traineePeople[Math.floor(rnd() * traineePeople.length)];
+    const created = new Date(base + Math.floor(rnd() * 21) * DAY + Math.floor(rnd() * 10) * 3600 * 1000);
+    const status = i === 5 ? "failed" : i === 11 ? "uploading" : "ready";
+    const shared = status === "ready" && rnd() < 0.72;
+    const viewed = shared && rnd() < 0.6;
+    recordings.push({
+      id: "dev-rec-" + (i + 1),
+      title: `שיעור מיום ${WD[created.getDay()]}, ${created.getDate()}.${created.getMonth() + 1}`,
+      owner_email: t.email,
+      ownerEmail: t.email,
+      ownerName: t.full_name,
+      duration_s: 1200 + Math.floor(rnd() * 2400),
+      created_at: created.toISOString(),
+      status,
+      sharedWith: shared ? [houseOf[t.email].full_name] : [],
+      viewed,
+      hasAnalysis: shared && rnd() < 0.5,
+    });
+  }
+  recordings.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+
+  // מבט-העל של החותמיסטים נגזר מהשיעורים, כמו בשאילתה האמיתית
+  const trainees = traineePeople.map((t) => {
+    const myRecs = recordings.filter((r) => r.owner_email === t.email);
+    const readyRecs = myRecs.filter((r) => r.status === "ready");
+    const shares = readyRecs.filter((r) => r.sharedWith.length).length;
+    const viewed = readyRecs.filter((r) => r.viewed).length;
+    const last = myRecs.length ? myRecs[0].created_at : null;
+    return {
+      email: t.email,
+      full_name: t.full_name,
+      lastRecording: last,
+      recordings: myRecs.length,
+      shares,
+      viewed,
+    };
+  });
+
+  // פרופילים: כשלושה רבעים מהחותמיסטים כבר נכנסו פעם, וכל הצוות
+  const profiles = roster
+    .filter((p, i) => p.role !== "trainee" || i % 4 !== 3)
+    .map((p) => ({ email: p.email, full_name: p.full_name, role: p.role }));
+
+  const joinRequests = [
+    {
+      email: "new.demo@example.com",
+      full_name: "יעקב (הדגמה)",
+      phone: "050-0000000",
+      created_at: "2026-07-20T08:00:00Z",
+    },
+  ];
+  const failedUploads = recordings
+    .filter((r) => r.status === "failed" || r.status === "uploading")
+    .map((r) => ({ ...r }));
+
+  _devAdmin = { roster, assignments, recordings, trainees, profiles, joinRequests, failedUploads };
+  return _devAdmin;
+}
+
 export async function adminOverview() {
   if (DEV) {
+    const d = devAdminData();
     return {
-      trainees: [
-        {
-          email: "moshe.demo@example.com",
-          full_name: "משה (הדגמה)",
-          lastRecording: "2026-07-06T09:00:00Z",
-          recordings: 2,
-          shares: 1,
-          viewed: 1,
-        },
-        {
-          email: "sara.demo@example.com",
-          full_name: "שרה (הדגמה)",
-          lastRecording: null,
-          recordings: 0,
-          shares: 0,
-          viewed: 0,
-        },
-      ],
-      joinRequests: [
-        {
-          email: "new.demo@example.com",
-          full_name: "יעקב (הדגמה)",
-          phone: "050-0000000",
-          created_at: "2026-07-07T08:00:00Z",
-        },
-      ],
-      failedUploads: [],
+      trainees: d.trainees.map((t) => ({ ...t })),
+      joinRequests: d.joinRequests.map((j) => ({ ...j })),
+      failedUploads: d.failedUploads.map((f) => ({ ...f })),
     };
   }
   const [{ data: roster }, { data: recs }, { data: shares }, { data: views }] =
@@ -491,7 +617,18 @@ export async function adminOverview() {
 }
 
 export async function upsertRosterRows(rows) {
-  if (DEV) return;
+  if (DEV) {
+    const d = devAdminData();
+    (rows || []).forEach((r) => {
+      const found = d.roster.find((p) => p.email === r.email);
+      if (found) {
+        if (r.full_name && !found.full_name) found.full_name = r.full_name;
+      } else {
+        d.roster.push({ email: r.email, full_name: r.full_name || "", role: r.role || "trainee" });
+      }
+    });
+    return;
+  }
   const { error } = await supabase
     .from("migdalor_roster")
     .upsert(rows, { onConflict: "email" });
@@ -500,16 +637,9 @@ export async function upsertRosterRows(rows) {
 
 // ---------- ניהול תפקידים (אדמין) ----------
 
-const DEV_ROSTER = [
-  { email: "moshe.demo@example.com", full_name: "משה (הדגמה)", role: "trainee" },
-  { email: "sara.demo@example.com", full_name: "שרה (הדגמה)", role: "trainee" },
-  { email: "ehud.demo@example.com", full_name: "אהוד (הדגמה)", role: "mentor" },
-  { email: "nir.demo@example.com", full_name: "ניר (הדגמה)", role: "admin" },
-];
-
 // כל הרשומות ב-roster, ממוין לפי תפקיד ואז שם. לאדמין בלבד (roster_select).
 export async function listRoster() {
-  if (DEV) return [...DEV_ROSTER];
+  if (DEV) return devAdminData().roster.map((p) => ({ ...p }));
   const { data, error } = await supabase
     .from("migdalor_roster")
     .select("email,full_name,role");
@@ -522,7 +652,18 @@ export async function listRoster() {
 // 2. אם כבר קיים פרופיל למייל הזה, מעדכן גם את migdalor_profiles.role,
 //    כדי שאדם קיים יקבל את התפקיד החדש מיד ולא רק בהרשמה הבאה.
 export async function upsertPerson({ email, full_name, role }) {
-  if (DEV) return;
+  if (DEV) {
+    const d = devAdminData();
+    const e2 = (email || "").trim().toLowerCase();
+    const found = d.roster.find((p) => p.email === e2);
+    if (found) {
+      found.role = role;
+      if (full_name) found.full_name = full_name;
+    } else {
+      d.roster.push({ email: e2, full_name: (full_name || "").trim(), role });
+    }
+    return;
+  }
   const e = (email || "").trim().toLowerCase();
   const { error } = await supabase
     .from("migdalor_roster")
@@ -540,12 +681,164 @@ export async function upsertPerson({ email, full_name, role }) {
 }
 
 export async function removeFromRoster(email) {
-  if (DEV) return;
+  if (DEV) {
+    const d = devAdminData();
+    const e = (email || "").trim().toLowerCase();
+    d.roster = d.roster.filter((p) => p.email !== e);
+    return;
+  }
   const { error } = await supabase
     .from("migdalor_roster")
     .delete()
     .eq("email", (email || "").trim().toLowerCase());
   if (error) throw error;
+}
+
+// כל הפרופילים (מי שנכנס לפחות פעם אחת). לאדמין בלבד, לעמוד המשתמשים.
+export async function listProfiles() {
+  if (DEV) return devAdminData().profiles.map((p) => ({ ...p }));
+  const { data, error } = await supabase
+    .from("migdalor_profiles")
+    .select("email,full_name,role");
+  if (error) throw error;
+  return data || [];
+}
+
+// ---------- שיבוצים (אדמין) ----------
+
+// כל השיבוצים עם שמות משני הצדדים, החדש קודם. שליפה מרוכזת אחת + roster.
+export async function listAssignments() {
+  if (DEV) return devAdminData().assignments.map((a) => ({ ...a }));
+  const [{ data: rows, error }, { data: roster, error: e2 }] = await Promise.all([
+    supabase
+      .from("migdalor_assignments")
+      .select("id,trainee_email,mentor_email,assignment_type,created_at")
+      .order("created_at", { ascending: false }),
+    supabase.from("migdalor_roster").select("email,full_name"),
+  ]);
+  if (error) throw error;
+  if (e2) throw e2;
+  const names = {};
+  (roster || []).forEach((r) => (names[r.email] = r.full_name || ""));
+  return (rows || []).map((a) => ({
+    ...a,
+    trainee_name: names[a.trainee_email] || "",
+    mentor_name: names[a.mentor_email] || "",
+  }));
+}
+
+export async function removeAssignment(id) {
+  if (DEV) {
+    const d = devAdminData();
+    d.assignments = d.assignments.filter((a) => a.id !== id);
+    return;
+  }
+  const { error } = await supabase
+    .from("migdalor_assignments")
+    .delete()
+    .eq("id", id);
+  if (error) throw error;
+}
+
+// ---------- כל השיעורים (אדמין) ----------
+
+// עמוד השיעורים: כל ההקלטות מסוג שיעור, בעימוד. לכל שיעור: שם החותמיסט,
+// עם מי שותף, האם נצפה והאם יש ניתוח חכם. שליפות מרוכזות לפי העמוד
+// הנוכחי בלבד (בלי N+1), והמחיר נשאר קבוע גם עם מאות שיעורים.
+export async function listAllRecordings({ limit = 50, offset = 0 } = {}) {
+  if (DEV) {
+    const all = devAdminData().recordings;
+    return { rows: all.slice(offset, offset + limit).map((r) => ({ ...r })), total: all.length };
+  }
+  const { data: recs, count, error } = await supabase
+    .from("migdalor_recordings")
+    .select("id,owner_id,title,duration_s,created_at,status", { count: "exact" })
+    .eq("kind", "lesson")
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (error) throw error;
+  const rows = recs || [];
+  if (!rows.length) return { rows: [], total: count || 0 };
+
+  const ids = rows.map((r) => r.id);
+  const ownerIds = [...new Set(rows.map((r) => r.owner_id))];
+  const [{ data: profs }, { data: shares }, { data: analyses }] = await Promise.all([
+    supabase.from("migdalor_profiles").select("id,email,full_name").in("id", ownerIds),
+    supabase
+      .from("migdalor_shares")
+      .select("id,recording_id,shared_with_email")
+      .eq("revoked", false)
+      .in("recording_id", ids),
+    supabase.from("migdalor_analyses").select("recording_id,status").in("recording_id", ids),
+  ]);
+
+  const shareIds = (shares || []).map((s) => s.id);
+  let views = [];
+  if (shareIds.length) {
+    const { data: v } = await supabase
+      .from("migdalor_views")
+      .select("share_id")
+      .in("share_id", shareIds);
+    views = v || [];
+  }
+  const recipEmails = [
+    ...new Set((shares || []).map((s) => s.shared_with_email).filter(Boolean)),
+  ];
+  const recipNames = {};
+  if (recipEmails.length) {
+    const { data: ro } = await supabase
+      .from("migdalor_roster")
+      .select("email,full_name")
+      .in("email", recipEmails);
+    (ro || []).forEach((r) => (recipNames[r.email] = r.full_name || r.email));
+  }
+
+  const owners = {};
+  (profs || []).forEach((p) => (owners[p.id] = { name: p.full_name || p.email, email: p.email }));
+  const viewedShares = new Set(views.map((v) => v.share_id));
+  const analyzed = new Set(
+    (analyses || []).filter((a) => a.status === "ready").map((a) => a.recording_id)
+  );
+
+  return {
+    rows: rows.map((r) => {
+      const myShares = (shares || []).filter(
+        (s) => s.recording_id === r.id && s.shared_with_email
+      );
+      return {
+        ...r,
+        ownerName: (owners[r.owner_id] || {}).name || "",
+        ownerEmail: (owners[r.owner_id] || {}).email || "",
+        sharedWith: myShares.map((s) => recipNames[s.shared_with_email] || s.shared_with_email),
+        viewed: myShares.some((s) => viewedShares.has(s.id)),
+        hasAnalysis: analyzed.has(r.id),
+      };
+    }),
+    total: count || rows.length,
+  };
+}
+
+// השיעורים של חותמיסט אחד (לשורת הפירוט בעמוד החותמיסטים)
+export async function listRecordingsOfTrainee(email) {
+  if (DEV) {
+    return devAdminData()
+      .recordings.filter((r) => r.owner_email === email)
+      .map((r) => ({ ...r }));
+  }
+  const { data: prof } = await supabase
+    .from("migdalor_profiles")
+    .select("id")
+    .eq("email", (email || "").toLowerCase())
+    .maybeSingle();
+  if (!prof || !prof.id) return [];
+  const { data, error } = await supabase
+    .from("migdalor_recordings")
+    .select("id,title,duration_s,created_at,status")
+    .eq("owner_id", prof.id)
+    .eq("kind", "lesson")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data || [];
 }
 
 // ---------- ייבוא שיבוצים: משיכת גיליון גוגל (אדמין) ----------
@@ -583,7 +876,28 @@ export async function fetchSheetCsv(sheetId, gid) {
 }
 
 export async function addAssignments(rows) {
-  if (DEV) return;
+  if (DEV) {
+    // גם בהדגמה הטעינה מרגישה אמיתית: שיבוצים חדשים נכנסים לנתוני ההדגמה
+    const d = devAdminData();
+    const have = new Set(d.assignments.map((a) => a.trainee_email + "|" + a.mentor_email));
+    const names = {};
+    d.roster.forEach((p) => (names[p.email] = p.full_name));
+    const fresh = (rows || []).filter(
+      (r) => !have.has(r.trainee_email + "|" + r.mentor_email)
+    );
+    fresh.forEach((r, i) => {
+      d.assignments.unshift({
+        id: "dev-asg-new-" + Date.now() + "-" + i,
+        trainee_email: r.trainee_email,
+        trainee_name: names[r.trainee_email] || "",
+        mentor_email: r.mentor_email,
+        mentor_name: names[r.mentor_email] || "",
+        assignment_type: r.assignment_type || "",
+        created_at: new Date().toISOString(),
+      });
+    });
+    return fresh.length;
+  }
   // אין אילוץ ייחודיות בטבלה, ולכן בודקים כפילויות לפני הכנסה.
   const { data: existing, error } = await supabase
     .from("migdalor_assignments")

@@ -3,149 +3,60 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>חותמטק: פאנל ניהול</title>
+<title>חותמטק: דשבורד ניהול</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="brand.css">
 <link rel="stylesheet" href="brand-dashboard.css">
-<style>
-  /* התאמות מסך-מלא ורספונסיביות לפאנל האדמין (בלי לגעת ב-brand-dashboard.css) */
-  .app-shell > .topbar, .app-shell > .dash-main { min-width: 0; }
-  .topbar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  @media (max-width: 720px) {
-    /* במובייל הפעולות עוברות לתפריט הנשלף; שומרים רק המבורגר, כותרת ומשתמש */
-    .topbar-actions .btn-secondary { display: none; }
-    .topbar { gap: 10px; padding: 0 14px; }
-  }
-  /* פעולות מהירות במגירה (מובייל), משוכפלות מה-topbar */
-  .sidebar-actions { display: none; }
-  @media (max-width: 900px) {
-    .sidebar-actions { display: block; margin-top: 10px; padding-top: 10px; border-top: var(--kav); }
-  }
-  /* מדור טעינת שיבוצים: צעדים ממוספרים, מסלול הדבקה צנוע, וטבלת הבדיקה */
-  .import-step { margin-top: 18px; padding-top: 16px; border-top: var(--kav); }
-  .import-step-title {
-    display: flex; align-items: center; gap: 10px;
-    font-weight: 600; font-size: 17px; color: var(--deyo); margin-bottom: 4px;
-  }
-  .import-step-title .num {
-    width: 26px; height: 26px; flex: none; border-radius: 50%;
-    background: #eef3ff; color: var(--kachol);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 700;
-  }
-  .side-panel .small.fine { font-size: 15px; margin-top: 8px; }
-  #sheetUrl { direction: ltr; text-align: left; }
-  .paste-details { margin-top: 16px; }
-  .paste-details summary { cursor: pointer; color: var(--kachol); font-size: 16px; font-weight: 500; }
-  .import-preview { margin-top: 14px; }
-  .import-preview .dtable th, .import-preview .dtable td { padding: 10px 12px; font-size: 15px; }
-  .import-preview .sub-mail { display: block; font-size: 12.5px; color: var(--afor); direction: ltr; text-align: right; }
-  .import-preview tr.row-bad td { background: var(--adom-rakh); }
-  .import-preview .row-reason { color: var(--adom); font-size: 13.5px; font-weight: 500; white-space: normal; }
-  .import-preview .trow-card.row-bad { border-inline-start: 4px solid var(--adom); }
-  /* מפריד "או" בין שתי דרכי הכניסה */
-  .login-divider {
-    display: flex; align-items: center; gap: 12px;
-    color: var(--afor); font-size: 16px; margin-top: 18px;
-  }
-  .login-divider::before, .login-divider::after {
-    content: ""; flex: 1; border-top: var(--kav);
-  }
-</style>
+<link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
 
 <div class="dev-banner">מצב תצוגה: נתוני הדגמה בלבד, שום דבר לא נשלח לשרת</div>
 <div class="offline-bar">אין אינטרנט כרגע. הנתונים יתעדכנו כשיחזור החיבור.</div>
 
-<!-- מסכי כניסה: פשוטים וממורכזים, לא shell -->
-<section id="screen-boot" class="screen active">
-  <h1>חותמטק</h1>
-  <p class="small mt">רק רגע...</p>
-</section>
+<!-- מסכי כניסה מוזרקים ע"י admin-shell.js -->
+<div id="authScreens"></div>
 
-<section id="screen-login" class="screen">
-  <h1>פאנל ניהול</h1>
-  <div class="notice plain mt">
-    עכשיו יופיע מסך של גוגל. בוחרים את החשבון שלך ולוחצים אישור.
-  </div>
-  <button id="loginBtn" class="btn-primary">כניסה עם Google</button>
-  <div class="login-divider">או</div>
-  <button id="otpOpenBtn" class="btn-secondary">כניסה עם מייל ארגוני (TFI)</button>
-  <form id="otpForm" class="hidden">
-    <label for="otpEmail">המייל הארגוני</label>
-    <input type="email" id="otpEmail" autocomplete="email" required>
-    <button type="submit" id="otpSendBtn" class="btn-primary">לשלוח לי קישור כניסה</button>
-  </form>
-  <div id="otpDone" class="notice ok hidden">שלחנו קישור כניסה למייל. פותחים אותו מהמכשיר הזה.</div>
-  <div id="otpError" class="notice hidden"></div>
-</section>
-
-<section id="screen-denied" class="screen">
-  <h1>העמוד הזה מיועד לצוות המלווה</h1>
-  <p class="mt">פאנל הניהול פתוח למובילי ההכשרה בלבד. השיעורים שלך מחכים לך בעמוד האישי שלך, ואם לדעתך זו טעות, פונים לצוות.</p>
-  <a id="deniedHome" href="index.html" class="btn-primary" style="display:flex; align-items:center; justify-content:center; text-decoration:none">לעמוד שלי</a>
-</section>
-
-<!-- ===== משטח הניהול: app shell מלא ===== -->
+<!-- ===== דשבורד: מבט-על בלבד. הטבלאות המלאות בעמודים הייעודיים ===== -->
 <section id="screen-admin" class="screen">
   <div class="app-shell">
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <span class="brand-icon"><svg><use href="#i-lighthouse"/></svg></span>
-        <span class="name">חותמטק</span>
-      </div>
-      <a class="nav-item active"><span class="ico"><svg><use href="#i-profile"/></svg></span>החותמיסטים<span class="count" id="navTraineeCount">0</span></a>
-      <a class="nav-item" id="navHelp"><span class="ico"><svg><use href="#i-handshake"/></svg></span>מי צריך עזרה<span class="count" id="navHelpCount">0</span></a>
-      <a class="nav-item" onclick="openPanel('manualPanel')"><span class="ico"><svg><use href="#i-calendar"/></svg></span>שיבוץ חדש</a>
-      <a class="nav-item" onclick="openPanel('csvPanel')"><span class="ico"><svg><use href="#i-share"/></svg></span>טעינת שיבוצים</a>
-      <a class="nav-item" onclick="openPanel('rolesPanel')"><span class="ico"><svg><use href="#i-handshake"/></svg></span>ניהול תפקידים</a>
-      <div class="sidebar-foot">
-        <a id="backToApp" href="index.html?stay=1" class="nav-item"><span class="ico"><svg><use href="#i-telescope"/></svg></span>למסך הצילום</a>
-        <a id="toMentor" href="mentor.html" class="nav-item"><span class="ico"><svg><use href="#i-eye"/></svg></span>למסך מוביל הבית</a>
-        <a href="sim.html" class="nav-item"><span class="ico"><svg><use href="#i-eye"/></svg></span>מרכז הסימולציות</a>
-        <a id="logoutLink" href="#" class="nav-item"><span class="ico"><svg><use href="#i-share"/></svg></span>התנתקות</a>
-      </div>
-    </aside>
+    <aside class="sidebar" id="adminSidebar"></aside>
 
     <header class="topbar">
       <button class="shell-burger" aria-label="תפריט">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
-      <div class="topbar-title">פאנל ניהול <span class="sub">מוביל ההכשרה</span></div>
+      <div class="topbar-title">דשבורד <span class="sub">פאנל ניהול</span></div>
       <div class="topbar-spacer"></div>
       <div class="topbar-actions">
-        <button class="btn-secondary" style="margin:0; min-height:42px; padding:0 18px; font-size:16px" onclick="openPanel('manualPanel')">שיבוץ חדש</button>
-        <button class="btn-secondary" style="margin:0; min-height:42px; padding:0 18px; font-size:16px" onclick="openPanel('rolesPanel')">ניהול תפקידים</button>
-        <button class="btn-secondary" style="margin:0; min-height:42px; padding:0 18px; font-size:16px" onclick="openPanel('csvPanel')">טעינת שיבוצים</button>
-        <div class="topbar-user"><span class="avatar">נ</span></div>
+        <div class="topbar-user"><span class="avatar" id="topbarAvatar">·</span></div>
       </div>
     </header>
 
     <main class="dash-main">
-      <!-- רצועת סיכום -->
+      <!-- רצועת סיכום: כל כרטיס מוביל לעמוד שלו -->
       <div class="stat-strip" id="statStrip">
-        <div class="stat-card accent">
+        <a class="stat-card accent" id="statCardTrainees" href="admin-trainees.html">
           <div class="stat-label"><span class="ico"><svg><use href="#i-profile"/></svg></span>חותמיסטים</div>
           <div class="stat-value" id="statTrainees">—</div>
           <div class="stat-delta" id="statTraineesSub">ברשימת השיבוץ</div>
-        </div>
-        <div class="stat-card">
+        </a>
+        <a class="stat-card" id="statCardShares" href="admin-lessons.html">
           <div class="stat-label"><span class="ico"><svg><use href="#i-share"/></svg></span>שיתופים</div>
           <div class="stat-value" id="statShares">—</div>
           <div class="stat-delta">שיעורים ששותפו למוביל הבית</div>
-        </div>
-        <div class="stat-card">
+        </a>
+        <a class="stat-card" id="statCardViewed" href="admin-lessons.html">
           <div class="stat-label"><span class="ico"><svg><use href="#i-eye"/></svg></span>אחוז נצפו</div>
           <div class="stat-value" id="statViewed">—</div>
           <div class="stat-delta">מהשיתופים נצפו</div>
-        </div>
-        <div class="stat-card">
+        </a>
+        <a class="stat-card" id="statCardHelp" href="#helpSection">
           <div class="stat-label"><span class="ico"><svg><use href="#i-clock"/></svg></span>צריכים עזרה</div>
           <div class="stat-value" id="statHelp">—</div>
           <div class="stat-delta" id="statHelpSub">תקועים או ממתינים</div>
-        </div>
+        </a>
       </div>
 
       <!-- מי צריך עזרה היום -->
@@ -157,41 +68,35 @@
         <div id="failedUploads"></div>
       </div>
 
-      <!-- טבלת החותמיסטים -->
+      <!-- פעילות אחרונה: עשרת השיעורים האחרונים -->
       <div class="dash-section">
-        <div class="dash-section-head"><h2>החותמיסטים</h2></div>
-        <div id="tableLoading"><div class="skeleton"></div></div>
-        <div id="tableError" class="notice hidden">
-          לא הצלחנו להביא את הנתונים.
-          <button id="tableRetry" class="btn-secondary">לנסות שוב</button>
+        <div class="dash-section-head">
+          <h2>פעילות אחרונה</h2>
+          <a class="head-link" id="allLessonsLink" href="admin-lessons.html">לכל השיעורים</a>
         </div>
+        <div id="recentLoading"><div class="skeleton"></div></div>
+        <div id="recentError" class="notice hidden">
+          לא הצלחנו להביא את הנתונים.
+          <button id="recentRetry" class="btn-secondary">לנסות שוב</button>
+        </div>
+        <div id="recentEmpty" class="notice plain hidden">עוד אין שיעורים במערכת.</div>
 
-        <div class="table-card" id="traineeCard" hidden>
-          <div class="table-toolbar">
-            <div class="search">
-              <span class="ico"><svg><use href="#i-eye"/></svg></span>
-              <input type="search" id="traineeSearch" placeholder="חיפוש חותמיסט...">
-            </div>
-          </div>
-
-          <!-- דסקטופ -->
+        <div class="table-card" id="recentCard" hidden>
           <div class="dtable-scroll">
-            <table class="dtable" id="traineeTable">
+            <table class="dtable">
               <thead>
                 <tr>
-                  <th class="sortable" data-key="full_name">שם <span class="sort-ico">▲</span></th>
-                  <th class="sortable sorted-desc" data-key="lastRecordingTs">הקלטה אחרונה <span class="sort-ico">▲</span></th>
-                  <th class="sortable" data-key="shares">שיתופים <span class="sort-ico">▲</span></th>
-                  <th class="sortable" data-key="viewed">נצפו <span class="sort-ico">▲</span></th>
+                  <th>שיעור</th>
+                  <th>חותמיסט</th>
+                  <th>תאריך</th>
+                  <th>משך</th>
                   <th>סטטוס</th>
                 </tr>
               </thead>
-              <tbody id="traineeRows"></tbody>
+              <tbody id="recentRows"></tbody>
             </table>
           </div>
-
-          <!-- מובייל -->
-          <div class="table-cards" id="traineeCards"></div>
+          <div class="table-cards" id="recentCards"></div>
         </div>
       </div>
     </main>
@@ -199,144 +104,6 @@
     <div class="shell-scrim"></div>
   </div>
 </section>
-
-<!-- ===== פאנל צד: טעינת שיבוצים ===== -->
-<div class="side-panel" id="csvPanel">
-  <div class="side-panel-head">
-    <h3>טעינת שיבוצים</h3>
-    <button class="side-panel-close" onclick="closePanel()" aria-label="סגירה">×</button>
-  </div>
-  <div class="side-panel-body">
-    <p class="small">
-      ממלאים את התבנית שורה לכל שיבוץ, וטוענים אותה חזרה כקובץ או דרך קישור לגיליון גוגל.
-      לפני הטעינה מוצגת בדיקה של כל השורות.
-    </p>
-
-    <div class="import-step">
-      <div class="import-step-title"><span class="num">1</span>מורידים תבנית וממלאים</div>
-      <button id="tplBtn" class="btn-secondary">הורדת תבנית אקסל</button>
-      <p class="small fine">בתבנית יש דף הוראות קצר ושתי שורות דוגמה שמוחקים לפני הטעינה.</p>
-    </div>
-
-    <div class="import-step">
-      <div class="import-step-title"><span class="num">2</span>טוענים חזרה</div>
-
-      <input type="file" id="xlsFile" class="hidden" accept=".xlsx,.xls,.csv">
-      <button id="xlsPickBtn" class="btn-secondary">בחירת קובץ אקסל מהמחשב</button>
-
-      <label for="sheetUrl">או קישור לגיליון גוגל</label>
-      <input type="text" id="sheetUrl" inputmode="url" placeholder="https://docs.google.com/spreadsheets/d/...">
-      <button id="sheetPullBtn" class="btn-secondary">משיכה מהגיליון</button>
-      <p class="small fine">שיתוף הגיליון צריך להיות במצב "כל מי שיש לו הקישור".</p>
-
-      <details class="paste-details">
-        <summary>או להדביק שורות מהגיליון</summary>
-        <p class="small fine">
-          סדר העמודות: מייל חותמיסט, שם חותמיסט, מייל מוביל בית, שם מוביל בית, סוג שיבוץ (לא חובה).
-          מפרידים בפסיק או בטאב (הדבקה מאקסל עובדת כמו שהיא).
-        </p>
-        <textarea id="csvBox" placeholder="trainee@example.com&#9;משה לוי&#9;mentor@example.com&#9;אהוד כהן&#9;מוביל בית"></textarea>
-        <button id="csvPreviewBtn" class="btn-secondary">לבדוק לפני טעינה</button>
-      </details>
-    </div>
-
-    <div id="csvBusy" class="notice plain hidden">רק רגע, קוראים את הנתונים...</div>
-
-    <div id="csvPreview" class="hidden">
-      <div class="import-step import-preview-step">
-        <div class="import-step-title"><span class="num">3</span>בודקים וטוענים</div>
-        <div class="notice plain" id="csvSummary"></div>
-        <div class="table-card import-preview">
-          <div class="dtable-scroll">
-            <table class="dtable">
-              <thead><tr><th>חותמיסט</th><th>מוביל בית</th><th>סוג</th><th>בדיקה</th></tr></thead>
-              <tbody id="previewRows"></tbody>
-            </table>
-          </div>
-          <div class="table-cards" id="previewCards"></div>
-        </div>
-        <button id="csvCommitBtn" class="btn-primary">לטעון</button>
-      </div>
-    </div>
-
-    <div id="csvDone" class="notice ok hidden"></div>
-    <div id="csvError" class="notice hidden"></div>
-  </div>
-</div>
-
-<!-- ===== פאנל צד: שיבוץ ידני ===== -->
-<div class="side-panel" id="manualPanel">
-  <div class="side-panel-head">
-    <h3>שיבוץ ידני</h3>
-    <button class="side-panel-close" onclick="closePanel()" aria-label="סגירה">×</button>
-  </div>
-  <div class="side-panel-body">
-    <form id="manualForm">
-      <label for="mTraineeEmail">מייל החותמיסט</label>
-      <input type="email" id="mTraineeEmail" required>
-      <label for="mTraineeName">שם החותמיסט</label>
-      <input type="text" id="mTraineeName">
-      <label for="mMentorEmail">מייל מוביל הבית</label>
-      <input type="email" id="mMentorEmail" required>
-      <label for="mMentorName">שם מוביל הבית</label>
-      <input type="text" id="mMentorName">
-      <label for="mType">סוג השיבוץ (לא חובה)</label>
-      <input type="text" id="mType" placeholder="מוביל בית / מוביל דעת">
-      <button type="submit" class="btn-primary">לשבץ</button>
-    </form>
-    <div id="manualDone" class="notice ok hidden"></div>
-    <div id="manualError" class="notice hidden"></div>
-  </div>
-</div>
-
-<!-- ===== פאנל צד: ניהול תפקידים ===== -->
-<div class="side-panel" id="rolesPanel">
-  <div class="side-panel-head">
-    <h3>ניהול תפקידים</h3>
-    <button class="side-panel-close" onclick="closePanel()" aria-label="סגירה">×</button>
-  </div>
-  <div class="side-panel-body">
-    <p class="small">הוספת אדם עם תפקיד, או שינוי תפקיד של מי שכבר ברשימה. חותמיסט מצלם ומשתף, מוביל בית צופה, אדמין מנהל.</p>
-
-    <form id="roleForm">
-      <label for="roleEmail">מייל</label>
-      <input type="email" id="roleEmail" required>
-      <label for="roleName">שם</label>
-      <input type="text" id="roleName">
-      <label for="roleSelect">תפקיד</label>
-      <select id="roleSelect">
-        <option value="trainee">חותמיסט</option>
-        <option value="mentor">מוביל בית</option>
-        <option value="admin">אדמין</option>
-      </select>
-      <button type="submit" class="btn-primary">להוסיף / לעדכן</button>
-    </form>
-    <div id="roleDone" class="notice ok hidden"></div>
-    <div id="roleError" class="notice hidden"></div>
-
-    <div class="notice plain mt">
-      כדי שאדמין או מוביל בית חדש יוכל להתחבר עם גוגל בשלב הבדיקה, יש להוסיף גם את
-      כתובת המייל שלו כמשתמש בדיקה בהגדרות (הצוות הטכני מטפל).
-    </div>
-
-    <h2 class="mt">הרשימה הקיימת</h2>
-    <div id="rosterLoading"><div class="skeleton"></div></div>
-    <div id="rosterError" class="notice hidden">לא הצלחנו להביא את הרשימה.</div>
-    <div class="table-card" id="rosterCard" hidden>
-      <div class="dtable-scroll">
-        <table class="dtable" id="rosterTable">
-          <thead>
-            <tr><th>מייל</th><th>שם</th><th>תפקיד</th><th></th></tr>
-          </thead>
-          <tbody id="rosterRows"></tbody>
-        </table>
-      </div>
-      <div class="table-cards" id="rosterCards"></div>
-    </div>
-  </div>
-</div>
-
-<div class="panel-scrim" onclick="closePanel()"></div>
 
 <script type="module" src="js/admin.js"></script>
 </body>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>חותמטק: ניהול משתמשים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="brand.css">
+<link rel="stylesheet" href="brand-dashboard.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="dev-banner">מצב תצוגה: נתוני הדגמה בלבד, שום דבר לא נשלח לשרת</div>
+<div class="offline-bar">אין אינטרנט כרגע. הנתונים יתעדכנו כשיחזור החיבור.</div>
+
+<div id="authScreens"></div>
+
+<section id="screen-admin" class="screen">
+  <div class="app-shell">
+    <aside class="sidebar" id="adminSidebar"></aside>
+
+    <header class="topbar">
+      <button class="shell-burger" aria-label="תפריט">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div class="topbar-title">משתמשים <span class="sub">פאנל ניהול</span></div>
+      <div class="topbar-spacer"></div>
+      <div class="topbar-actions">
+        <div class="topbar-user"><span class="avatar" id="topbarAvatar">·</span></div>
+      </div>
+    </header>
+
+    <main class="dash-main">
+      <!-- ===== כל המשתמשים ===== -->
+      <div class="dash-section">
+        <div class="dash-section-head"><h2>כל המשתמשים</h2></div>
+        <div id="rosterLoading"><div class="skeleton"></div></div>
+        <div id="rosterError" class="notice hidden">
+          לא הצלחנו להביא את הרשימה.
+          <button id="rosterRetry" class="btn-secondary">לנסות שוב</button>
+        </div>
+
+        <div class="table-card" id="rosterCard" hidden>
+          <div class="table-toolbar">
+            <div class="search">
+              <span class="ico"><svg><use href="#i-eye"/></svg></span>
+              <input type="search" id="userSearch" placeholder="חיפוש לפי שם או מייל...">
+            </div>
+            <select id="roleFilter" aria-label="סינון לפי תפקיד">
+              <option value="">כל התפקידים</option>
+              <option value="trainee">חותמיסט/ית</option>
+              <option value="mentor">מוביל/ת בית</option>
+              <option value="admin">אדמין</option>
+            </select>
+            <span class="toolbar-count" id="userCount"></span>
+          </div>
+
+          <!-- דסקטופ -->
+          <div class="dtable-scroll">
+            <table class="dtable" id="rosterTable">
+              <thead>
+                <tr>
+                  <th class="sortable sorted-asc" data-key="full_name">שם <span class="sort-ico">▲</span></th>
+                  <th class="sortable" data-key="email">מייל <span class="sort-ico">▲</span></th>
+                  <th class="sortable" data-key="role">תפקיד <span class="sort-ico">▲</span></th>
+                  <th class="sortable" data-key="entered">כניסה ראשונה <span class="sort-ico">▲</span></th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="rosterRows"></tbody>
+            </table>
+          </div>
+
+          <!-- מובייל -->
+          <div class="table-cards" id="rosterCards"></div>
+        </div>
+      </div>
+
+      <!-- ===== הוספת משתמש ===== -->
+      <div class="dash-section">
+        <div class="dash-section-head"><h2>הוספת משתמש</h2></div>
+        <div class="form-card">
+          <p class="small">הוספת אדם עם תפקיד, או עדכון של מי שכבר ברשימה. חותמיסט/ית מצלמים ומשתפים, מוביל/ת בית צופים, אדמין מנהל.</p>
+          <form id="roleForm">
+            <div class="form-grid">
+              <div>
+                <label for="roleEmail">מייל</label>
+                <input type="email" id="roleEmail" required>
+              </div>
+              <div>
+                <label for="roleName">שם</label>
+                <input type="text" id="roleName">
+              </div>
+              <div>
+                <label for="roleSelect">תפקיד</label>
+                <select id="roleSelect">
+                  <option value="trainee">חותמיסט/ית</option>
+                  <option value="mentor">מוביל/ת בית</option>
+                  <option value="admin">אדמין</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary">להוסיף / לעדכן</button>
+          </form>
+          <div id="roleDone" class="notice ok hidden"></div>
+          <div id="roleError" class="notice hidden"></div>
+
+          <div class="notice plain mt">
+            כדי שאדמין או מוביל/ת בית חדשים יוכלו להתחבר עם גוגל בשלב הבדיקה, יש להוסיף גם את
+            כתובת המייל שלהם כמשתמש בדיקה בהגדרות (הצוות הטכני מטפל).
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div class="shell-scrim"></div>
+  </div>
+</section>
+
+<script type="module" src="js/admin-users.js"></script>
+</body>
+</html>
